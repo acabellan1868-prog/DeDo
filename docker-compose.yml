@@ -1,0 +1,15 @@
+services:
+  dedo:
+    build: .
+    container_name: dedo
+    restart: unless-stopped
+    ports:
+      - "8085:8080"
+    volumes:
+      - ./data:/app/data
+    environment:
+      - DEDO_DB_PATH=${DEDO_DB_PATH:-data/dedo.db}
+      - TZ=${TZ:-Europe/Madrid}
+      - NTFY_URL=${NTFY_URL:-https://ntfy.sh}
+      - NTFY_TOPIC=${NTFY_TOPIC:-}
+      - FIDO_API_URL=${FIDO_API_URL:-http://192.168.31.131:8082}

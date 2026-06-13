@@ -1,0 +1,1 @@
+/* DeDo — lógica principal */

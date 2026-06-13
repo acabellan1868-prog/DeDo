@@ -1,0 +1,31 @@
+# DeDo — datos locales
+data/*.db
+data/*.db-wal
+data/*.db-shm
+
+# Variables de entorno
+.env
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[codz]
+*$py.class
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+
+# Environments
+.venv
+venv/
+env/
+
+# Mypy
+.mypy_cache/
+
+# Ruff
+.ruff_cache/
+
+# Claude Code local settings
+.claude/
