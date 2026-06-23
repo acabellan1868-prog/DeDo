@@ -47,4 +47,4 @@ app.include_router(caducidades.ruta,  prefix="/api/caducidades",  tags=["Caducid
 def raiz():
     return FileResponse("static/index.html")
 
-app.mount("/static", StaticFiles(directory="static"), name="static")
+app.mount("/", StaticFiles(directory="static"), name="static")

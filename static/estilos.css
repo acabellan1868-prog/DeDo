@@ -66,7 +66,7 @@ body {
     border-bottom: 1px solid var(--ck-line);
 }
 .dedo-subtitulo--alerta { color: var(--ck-warn, #f59e0b); }
-.dedo-subtitulo--peligro { color: var(--ck-error, #ef4444); }
+.dedo-subtitulo--peligro { color: var(--ck-danger, #ef4444); }
 
 /* ── Botones ── */
 .dedo-btn {
@@ -86,7 +86,7 @@ body {
 .dedo-btn:hover { background: rgba(128,128,128,0.15); color: var(--ck-on-surface); }
 .dedo-btn--primario { background: var(--ck-accent); border-color: var(--ck-accent); color: #fff; }
 .dedo-btn--primario:hover { opacity: 0.85; }
-.dedo-btn--peligro { border-color: var(--ck-error, #ef4444); color: var(--ck-error, #ef4444); }
+.dedo-btn--peligro { border-color: var(--ck-danger, #ef4444); color: var(--ck-danger, #ef4444); }
 .dedo-btn--peligro:hover { background: rgba(239,68,68,0.1); }
 .dedo-btn--alerta { border-color: var(--ck-warn, #f59e0b); color: var(--ck-warn, #f59e0b); }
 
