@@ -1,14 +1,141 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" data-tema-cockpit="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DeDo — Despensa Doméstica</title>
+    <link rel="stylesheet" href="/static/hogar.css">
     <link rel="stylesheet" href="/static/estilos.css">
 </head>
 <body>
-    <h1>DeDo — Despensa Doméstica</h1>
-    <p>En construcción.</p>
-    <script src="/static/app.js"></script>
+
+<div id="dedo-app">
+
+    <!-- ── Header Cockpit ── -->
+    <header class="ck-header">
+        <div class="ck-hdr-izq">
+            <a href="/" class="ck-marca-box" style="text-decoration:none">
+                <div class="ck-marca-dot"></div>
+            </a>
+            <div>
+                <div class="ck-marca-txt">HOGAR<span>OS</span></div>
+                <div class="ck-marca-sub">despensa</div>
+            </div>
+            <div class="ck-sep"></div>
+            <span class="ck-app-nombre">DeDo</span>
+            <div class="ck-sep"></div>
+            <nav class="ck-nav">
+                <button onclick="cambiarPestana('despensa')" id="btn-despensa" class="activo">DESPENSA</button>
+                <button onclick="cambiarPestana('lista')"    id="btn-lista">LISTA</button>
+                <button onclick="cambiarPestana('catalogo')" id="btn-catalogo">CATÁLOGO</button>
+                <button onclick="cambiarPestana('caducidades')" id="btn-caducidades">CADUCIDADES</button>
+                <button onclick="cambiarPestana('tickets')"  id="btn-tickets">TICKETS</button>
+            </nav>
+        </div>
+        <div class="ck-hdr-der">
+            <button class="ck-tema-btn" onclick="toggleTema()" title="Cambiar tema">
+                <span class="material-symbols-outlined">contrast</span>
+            </button>
+            <div class="ck-reloj">
+                <div class="ck-reloj__hora" id="dedo-hora">--:--:--</div>
+                <div class="ck-reloj__fecha" id="dedo-fecha"></div>
+            </div>
+        </div>
+    </header>
+
+    <!-- ── Contenido ── -->
+    <main class="dedo-main">
+
+        <!-- ── PESTAÑA: DESPENSA ── -->
+        <section id="sec-despensa" class="dedo-seccion">
+            <div class="dedo-toolbar">
+                <h2 class="dedo-titulo">Inventario actual</h2>
+                <div class="dedo-toolbar-acciones">
+                    <select id="filtro-stock" onchange="cargarStock()" class="dedo-select">
+                        <option value="todos">Todos</option>
+                        <option value="bajo">Stock bajo</option>
+                        <option value="ok">Stock OK</option>
+                    </select>
+                </div>
+            </div>
+            <div id="stock-lista" class="dedo-grid-stock">
+                <div class="dedo-cargando">Cargando inventario…</div>
+            </div>
+        </section>
+
+        <!-- ── PESTAÑA: LISTA ── -->
+        <section id="sec-lista" class="dedo-seccion dedo-seccion--oculta">
+            <div class="dedo-toolbar">
+                <h2 class="dedo-titulo">Lista de la compra</h2>
+                <div class="dedo-toolbar-acciones">
+                    <button class="dedo-btn dedo-btn--primario" onclick="mostrarFormLista()">+ Añadir</button>
+                    <button class="dedo-btn dedo-btn--peligro" onclick="vaciarLista()">Vaciar lista</button>
+                </div>
+            </div>
+
+            <!-- Formulario añadir (oculto por defecto) -->
+            <div id="form-lista" class="dedo-form dedo-form--oculto">
+                <input type="text" id="input-nombre-libre" placeholder="Nombre del producto…" class="dedo-input">
+                <input type="number" id="input-cantidad" value="1" min="0.1" step="0.1" class="dedo-input dedo-input--corto">
+                <input type="text" id="input-unidad" placeholder="Unidad" class="dedo-input dedo-input--corto">
+                <button class="dedo-btn dedo-btn--primario" onclick="añadirALista()">Añadir</button>
+                <button class="dedo-btn" onclick="ocultarFormLista()">Cancelar</button>
+            </div>
+
+            <div id="lista-items" class="dedo-lista-compra">
+                <div class="dedo-cargando">Cargando lista…</div>
+            </div>
+        </section>
+
+        <!-- ── PESTAÑA: CATÁLOGO ── -->
+        <section id="sec-catalogo" class="dedo-seccion dedo-seccion--oculta">
+            <div class="dedo-toolbar">
+                <h2 class="dedo-titulo">Catálogo de productos</h2>
+                <div class="dedo-toolbar-acciones">
+                    <button class="dedo-btn" onclick="filtrarCatalogo('todos')"    id="cat-btn-todos"    class="activo">Todos</button>
+                    <button class="dedo-btn" onclick="filtrarCatalogo('activo')"   id="cat-btn-activo">Activos</button>
+                    <button class="dedo-btn dedo-btn--alerta" onclick="filtrarCatalogo('por_definir')" id="cat-btn-pendientes">Por definir</button>
+                </div>
+            </div>
+            <div id="catalogo-lista" class="dedo-grid-catalogo">
+                <div class="dedo-cargando">Cargando catálogo…</div>
+            </div>
+        </section>
+
+        <!-- ── PESTAÑA: CADUCIDADES ── -->
+        <section id="sec-caducidades" class="dedo-seccion dedo-seccion--oculta">
+            <div class="dedo-toolbar">
+                <h2 class="dedo-titulo">Caducidades</h2>
+                <div class="dedo-toolbar-acciones">
+                    <label class="dedo-label">Días vista:
+                        <input type="number" id="dias-vista" value="7" min="1" max="30"
+                               class="dedo-input dedo-input--corto" onchange="cargarCaducidades()">
+                    </label>
+                </div>
+            </div>
+            <div class="dedo-caducidades-cols">
+                <div class="dedo-col">
+                    <h3 class="dedo-subtitulo dedo-subtitulo--alerta">⚠ Próximas a caducar</h3>
+                    <div id="caducidades-proximas"><div class="dedo-cargando">Cargando…</div></div>
+                </div>
+                <div class="dedo-col">
+                    <h3 class="dedo-subtitulo dedo-subtitulo--peligro">✕ Vencidas</h3>
+                    <div id="caducidades-vencidas"><div class="dedo-cargando">Cargando…</div></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ── PESTAÑA: TICKETS ── -->
+        <section id="sec-tickets" class="dedo-seccion dedo-seccion--oculta">
+            <div class="dedo-proximamente">
+                <span class="material-symbols-outlined">receipt_long</span>
+                <p>Procesado de tickets — disponible en la Fase 2</p>
+            </div>
+        </section>
+
+    </main>
+</div>
+
+<script src="/static/app.js"></script>
 </body>
 </html>

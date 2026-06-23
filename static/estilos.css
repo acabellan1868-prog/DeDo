@@ -1,1 +1,314 @@
-/* DeDo — estilos base */
+/* DeDo — Estilos Cockpit. Prefijo dedo-. Variables --ck-* vienen de hogar.css */
+
+html { font-size: 150%; }
+@media (max-width: 1300px) { html { font-size: 125%; } }
+@media (max-width: 900px)  { html { font-size: 100%; } }
+
+body {
+    margin: 0;
+    background: var(--ck-bg);
+    color: var(--ck-on-surface);
+    font-family: var(--ck-fuente);
+    overflow-x: hidden;
+}
+
+#dedo-app {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+/* ── Main ── */
+.dedo-main {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 1rem 1.5rem 2rem;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* ── Secciones / pestañas ── */
+.dedo-seccion { display: block; }
+.dedo-seccion--oculta { display: none !important; }
+
+/* ── Toolbar ── */
+.dedo-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+.dedo-toolbar-acciones {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+/* ── Títulos ── */
+.dedo-titulo {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ck-on-variant);
+    margin: 0;
+}
+.dedo-subtitulo {
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin: 0 0 0.75rem;
+    padding-bottom: 0.4rem;
+    border-bottom: 1px solid var(--ck-line);
+}
+.dedo-subtitulo--alerta { color: var(--ck-warn, #f59e0b); }
+.dedo-subtitulo--peligro { color: var(--ck-error, #ef4444); }
+
+/* ── Botones ── */
+.dedo-btn {
+    background: var(--ck-bg2);
+    border: 1px solid var(--ck-line);
+    color: var(--ck-on-variant);
+    font-family: var(--ck-fuente);
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 0.35rem 0.75rem;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+}
+.dedo-btn:hover { background: rgba(128,128,128,0.15); color: var(--ck-on-surface); }
+.dedo-btn--primario { background: var(--ck-accent); border-color: var(--ck-accent); color: #fff; }
+.dedo-btn--primario:hover { opacity: 0.85; }
+.dedo-btn--peligro { border-color: var(--ck-error, #ef4444); color: var(--ck-error, #ef4444); }
+.dedo-btn--peligro:hover { background: rgba(239,68,68,0.1); }
+.dedo-btn--alerta { border-color: var(--ck-warn, #f59e0b); color: var(--ck-warn, #f59e0b); }
+
+/* ── Inputs ── */
+.dedo-input {
+    background: var(--ck-bg2);
+    border: 1px solid var(--ck-line);
+    color: var(--ck-on-surface);
+    font-family: var(--ck-fuente);
+    font-size: 0.65rem;
+    padding: 0.35rem 0.6rem;
+    border-radius: 3px;
+    outline: none;
+    min-width: 0;
+}
+.dedo-input:focus { border-color: var(--ck-accent); }
+.dedo-input--corto { width: 5rem; }
+
+.dedo-select {
+    background: var(--ck-bg2);
+    border: 1px solid var(--ck-line);
+    color: var(--ck-on-surface);
+    font-family: var(--ck-fuente);
+    font-size: 0.65rem;
+    padding: 0.35rem 0.6rem;
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+.dedo-label {
+    font-size: 0.6rem;
+    color: var(--ck-on-variant);
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+/* ── Formulario ── */
+.dedo-form {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    flex-wrap: wrap;
+    padding: 0.75rem;
+    background: var(--ck-bg2);
+    border: 1px solid var(--ck-line);
+    border-radius: 4px;
+    margin-bottom: 1rem;
+}
+.dedo-form--oculto { display: none; }
+
+/* ── Grid stock ── */
+.dedo-grid-stock {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 0.75rem;
+}
+
+.dedo-card-stock {
+    background: var(--ck-bg2);
+    border: 1px solid var(--ck-line);
+    border-radius: 5px;
+    padding: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    position: relative;
+}
+.dedo-card-stock__nombre {
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: var(--ck-on-surface);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+.dedo-card-stock__meta {
+    font-size: 0.58rem;
+    color: var(--ck-on-variant);
+}
+.dedo-card-stock__cantidad {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--ck-accent);
+}
+.dedo-card-stock__indicador {
+    position: absolute;
+    top: 0.5rem; right: 0.5rem;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+}
+.dedo-card-stock__indicador--ok    { background: #22c55e; }
+.dedo-card-stock__indicador--bajo  { background: #f59e0b; }
+.dedo-card-stock__indicador--vacio { background: #ef4444; }
+
+/* ── Lista de la compra ── */
+.dedo-lista-compra {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+.dedo-item-lista {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    background: var(--ck-bg2);
+    border: 1px solid var(--ck-line);
+    border-radius: 4px;
+    padding: 0.5rem 0.75rem;
+}
+.dedo-item-lista__nombre {
+    flex: 1;
+    font-size: 0.65rem;
+    font-weight: 600;
+    color: var(--ck-on-surface);
+}
+.dedo-item-lista__meta {
+    font-size: 0.58rem;
+    color: var(--ck-on-variant);
+}
+.dedo-item-lista__del {
+    background: none;
+    border: none;
+    color: var(--ck-on-variant);
+    cursor: pointer;
+    font-size: 0.9rem;
+    line-height: 1;
+    padding: 0.1rem 0.25rem;
+    border-radius: 3px;
+    transition: color 0.15s, background 0.15s;
+}
+.dedo-item-lista__del:hover { color: var(--ck-error, #ef4444); background: rgba(239,68,68,0.1); }
+
+/* ── Grid catálogo ── */
+.dedo-grid-catalogo {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 0.6rem;
+}
+.dedo-card-catalogo {
+    background: var(--ck-bg2);
+    border: 1px solid var(--ck-line);
+    border-radius: 4px;
+    padding: 0.6rem 0.75rem;
+}
+.dedo-card-catalogo__nombre {
+    font-size: 0.63rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--ck-on-surface);
+    margin-bottom: 0.25rem;
+}
+.dedo-card-catalogo__meta {
+    font-size: 0.57rem;
+    color: var(--ck-on-variant);
+}
+.dedo-card-catalogo__badge {
+    display: inline-block;
+    font-size: 0.52rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 0.15rem 0.4rem;
+    border-radius: 2px;
+    margin-top: 0.4rem;
+    background: rgba(128,128,128,0.15);
+    color: var(--ck-on-variant);
+}
+.dedo-card-catalogo__badge--activo { background: rgba(34,197,94,0.15); color: #22c55e; }
+
+/* ── Caducidades ── */
+.dedo-caducidades-cols {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+}
+@media (max-width: 720px) { .dedo-caducidades-cols { grid-template-columns: 1fr; } }
+
+.dedo-col { display: flex; flex-direction: column; }
+
+.dedo-item-caducidad {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--ck-bg2);
+    border: 1px solid var(--ck-line);
+    border-radius: 4px;
+    padding: 0.5rem 0.75rem;
+    margin-bottom: 0.4rem;
+}
+.dedo-item-caducidad__nombre {
+    font-size: 0.63rem;
+    font-weight: 600;
+    color: var(--ck-on-surface);
+}
+.dedo-item-caducidad__dias {
+    font-size: 0.6rem;
+    font-weight: 700;
+    padding: 0.15rem 0.5rem;
+    border-radius: 10px;
+}
+.dedo-item-caducidad__dias--pronto  { background: rgba(245,158,11,0.15); color: #f59e0b; }
+.dedo-item-caducidad__dias--vencido { background: rgba(239,68,68,0.15);  color: #ef4444; }
+
+/* ── Cargando / vacío ── */
+.dedo-cargando {
+    font-size: 0.6rem;
+    color: var(--ck-on-variant);
+    padding: 1.5rem 0;
+    text-align: center;
+    grid-column: 1 / -1;
+}
+
+/* ── Próximamente ── */
+.dedo-proximamente {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    padding: 4rem 2rem;
+    color: var(--ck-on-variant);
+}
+.dedo-proximamente span { font-size: 3rem; opacity: 0.4; }
+.dedo-proximamente p { font-size: 0.65rem; letter-spacing: 0.06em; text-transform: uppercase; margin: 0; }
