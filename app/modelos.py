@@ -114,6 +114,74 @@ class CaducidadActualizar(BaseModel):
 
 
 # ============================================================
+# Tickets
+# ============================================================
+
+class LineaTicketCrear(BaseModel):
+    nombre_raw: str
+    cantidad: Optional[float] = None
+    precio_unitario: Optional[float] = None
+    precio_total: Optional[float] = None
+    fecha_caducidad: Optional[str] = None
+
+
+class LineaTicketRespuesta(BaseModel):
+    id: int
+    ticket_id: int
+    producto_id: Optional[int] = None
+    nombre_producto: Optional[str] = None
+    nombre_raw: str
+    cantidad: Optional[float] = None
+    precio_unitario: Optional[float] = None
+    precio_total: Optional[float] = None
+
+
+class TicketCrear(BaseModel):
+    supermercado: Optional[str] = None
+    fecha: Optional[str] = None
+    total: Optional[float] = None
+    fichero_origen: Optional[str] = None
+    lineas: list[LineaTicketCrear] = []
+
+
+class TicketRespuesta(BaseModel):
+    id: int
+    supermercado: Optional[str] = None
+    fecha: Optional[str] = None
+    total: Optional[float] = None
+    fichero_origen: Optional[str] = None
+    procesado_en: Optional[str] = None
+    lineas: list[LineaTicketRespuesta] = []
+
+
+# ============================================================
+# Precios
+# ============================================================
+
+class PrecioRespuesta(BaseModel):
+    id: int
+    producto_id: int
+    nombre_producto: Optional[str] = None
+    supermercado: Optional[str] = None
+    precio: float
+    fecha: Optional[str] = None
+    ticket_id: Optional[int] = None
+
+
+class DetalleComparativa(BaseModel):
+    producto_id: int
+    nombre_producto: Optional[str] = None
+    precio: float
+
+
+class ComparativaRespuesta(BaseModel):
+    supermercado: str
+    total_estimado: float
+    productos_con_precio: int
+    detalle: list[DetalleComparativa] = []
+
+
+# ============================================================
 # Resumen (para tarjeta del portal hogarOS)
 # ============================================================
 

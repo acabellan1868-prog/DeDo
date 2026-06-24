@@ -9,7 +9,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 
 from app.bd import inicializar_bd
-from app.rutas import catalogo, stock, lista, caducidades, resumen
+from app.rutas import catalogo, stock, lista, caducidades, resumen, tickets, precios
 
 logging.basicConfig(
     level=logging.INFO,
@@ -41,6 +41,8 @@ app.include_router(catalogo.ruta,     prefix="/api/catalogo",     tags=["Catálo
 app.include_router(stock.ruta,        prefix="/api/stock",        tags=["Stock"])
 app.include_router(lista.ruta,        prefix="/api/lista",        tags=["Lista"])
 app.include_router(caducidades.ruta,  prefix="/api/caducidades",  tags=["Caducidades"])
+app.include_router(tickets.ruta,      prefix="/api/tickets",      tags=["Tickets"])
+app.include_router(precios.ruta,      prefix="/api/precios",      tags=["Precios"])
 
 # ---- Servir frontend estático (debe ir al final) ----
 @app.get("/")

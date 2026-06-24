@@ -6,6 +6,7 @@ CREATE TABLE IF NOT EXISTS catalogo (
     marca TEXT,
     categoria TEXT,
     descripcion_visual TEXT,
+    zona TEXT,
     supermercado_habitual TEXT,
     stock_minimo REAL DEFAULT 1,
     unidad TEXT DEFAULT 'unidad',

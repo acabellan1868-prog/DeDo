@@ -101,12 +101,19 @@ La más importante. Mismo patrón ya funcionando en FiDo:
 - Llama al API de FiDo para registrar el gasto total
 
 ### 5.2 Foto de zona de despensa
-Para productos de almacén / limpieza / bebidas:
-- Usuario saca foto de un estante (no toda la despensa de golpe, mejor por zonas)
-- Claude Code analiza la imagen comparando contra el **catálogo de DeDo**
-- Identifica productos, estima cantidad visible
-- Genera sugerencias para la lista de la compra
-- No requiere reconocimiento "entrenado" — Claude ya reconoce productos con packaging visible
+Cada foto cubre una **zona concreta** de la casa y actualiza directamente el stock de esa zona (no sugiere, sobrescribe):
+- Usuario saca foto de una zona: frigo, cuartillo, alacena, estante limpieza…
+- Claude Code analiza la imagen comparando contra el catálogo (usando `descripcion_visual` como referencia)
+- Detecta productos visibles y estima cantidades
+- `POST /api/foto-despensa` recibe: zona + lista de productos con cantidades detectadas
+- DeDo borra el stock de esa zona y lo reescribe con lo que viene en la foto (SET, no suma)
+- Si hay 2 botes de lejía en la foto → el stock de lejía es 2
+- Productos detectados que no están en el catálogo → se crean como `por_definir`
+- Ventaja: resuelve el consumo sin necesidad de entrada manual — basta con fotografiar la zona periódicamente
+
+Las zonas son configurables por el usuario. Ejemplos habituales: `frigorifico`, `congelador`, `alacena`, `cuartillo`, `armario_banos`.
+
+Cada producto del catálogo tiene asignada una zona por defecto, que puede cambiar si el usuario lo reubica.
 
 ### 5.3 Entrada manual via Telegram
 - Texto libre: "se acabó el aceite" / "añade leche a la lista"
@@ -165,9 +172,10 @@ Pieza central de DeDo. Un catálogo personalizado de los productos habituales de
 nombre:                "Ariel Pods Todo en 1 Frescos"
 marca:                 "Ariel"
 categoria:             "detergente_lavadora"
-descripcion_visual:    "caja rosa/morada con bola de colores, tamaño mediano"
+zona:                  "cuartillo"           ← zona de almacenamiento habitual
+descripcion_visual:    "caja rosa/morada con bola de colores, tamaño mediano;
+                        en ticket aparece como 'ARIEL PODS 3EN1 30U'"
 supermercado_habitual: "Mercadona"
-stock_actual:          1
 stock_minimo:          2
 unidad:                "caja"
 caducidad_dias_defecto: null  (sin caducidad relevante)
@@ -179,6 +187,41 @@ estado:                "activo" | "por_definir"
 - Después de pocos meses, la mayoría de productos habituales están catalogados
 - Coste de mantenimiento casi cero — el usuario solo interviene en los "por definir"
 - Es personal: no reconoce el mundo entero, reconoce TUS productos
+
+---
+
+## 7b. La descripción visual como motor de reconocimiento
+
+La `descripcion_visual` no es un campo decorativo — es la pieza central que permite a Claude reconocer un producto con fiabilidad creciente en cada interacción.
+
+### Qué debe contener una buena descripción visual:
+- **Forma y tamaño**: "bote cilíndrico grande", "caja rectangular pequeña", "bolsa flexible"
+- **Colores dominantes**: "etiqueta azul oscuro con franja blanca", "packaging verde y amarillo"
+- **Elementos visuales clave**: "logo de la vaca en rojo", "tapa naranja", "franja dorada en la parte inferior"
+- **Cómo aparece en ticket**: "en el ticket aparece como 'ARIEL PODS 3EN1 30U'" — mejora el fuzzy match
+- **Zona habitual**: "en el cuartillo, segunda balda"
+
+### Ciclo de mejora continua:
+```
+Primera aparición (ticket o foto)
+    → Claude genera descripción inicial con lo que detecta
+    → Se guarda en el catálogo como borrador
+
+Segunda aparición (foto de zona)
+    → Claude tiene descripción de referencia
+    → Reconocimiento mucho más fiable
+    → Si hay discrepancia, actualiza la descripción
+
+Con el tiempo
+    → Catálogo personal = libro de referencia visual de TUS productos
+    → Reconocimiento prácticamente sin errores para productos habituales
+```
+
+### Uso en foto de zona:
+Antes de analizar una foto, Claude recibe el catálogo de productos esperados en esa zona (con sus descripciones visuales). Esto permite reconocer incluso productos parcialmente tapados, en ángulos difíciles o con iluminación deficiente — porque sabe exactamente qué buscar.
+
+### Uso en procesado de tickets:
+La descripción incluye cómo aparece el producto en el ticket (nombre comercial abreviado, código, etc.). Esto mejora el fuzzy match y reduce los productos que quedan como `por_definir`.
 
 ---
 
@@ -201,8 +244,17 @@ Cuando se genera la lista de la compra, DeDo puede calcular el coste estimado de
 El menú actúa como una fuente de **consumo planificado o confirmado**, complementando el stock actualizado por tickets.
 
 ### Dos modos de uso:
-- **Planificación**: el usuario registra el menú de la semana antes de cocinar → DeDo descuenta ingredientes del stock estimado de forma anticipada
-- **Registro a posteriori**: el usuario confirma lo que ha comido → DeDo actualiza el stock
+- **Planificación**: el usuario registra el menú de la semana antes de cocinar → DeDo sugiere descontar ingredientes del stock de forma anticipada
+- **Registro a posteriori**: el usuario confirma lo que ha comido → DeDo sugiere descontar los ingredientes usados
+
+### Flujo de descuento por menú (con confirmación):
+1. Usuario registra: "miércoles almuerzo: salmón a la naranja con cebolla"
+2. Claude extrae los ingredientes: salmón, naranjas, cebollas
+3. DeDo presenta sugerencia: *"¿Descuento esto de la despensa?"* con cantidades estimadas editables
+4. Usuario confirma, ajusta cantidades o descarta algún item
+5. Solo entonces se actualiza el stock
+
+El descuento **nunca es automático** — siempre pasa por confirmación del usuario, porque el sistema no conoce las cantidades exactas usadas.
 
 ### Qué funciona bien con el menú:
 - Productos únicos o poco frecuentes (lubina, salmón, ingredientes especiales)
@@ -213,12 +265,9 @@ El menú actúa como una fuente de **consumo planificado o confirmado**, complem
 - Productos genéricos de consumo diario (aceite, sal, pan) — se usan en casi todo
 - Cantidades exactas — el menú da señales, no mediciones precisas
 
-### Principio de funcionamiento:
-No necesita ser preciso al 100% para ser útil. Si se registra "lunes: lubina al horno", DeDo puede marcar "lubina: consumida esta semana" y añadirla a la lista sin saber exactamente cuántas quedaban. Es una señal de consumo, no una medición exacta.
-
 ### Registro del menú:
 - Via Telegram: "hoy he comido lubina al horno y ensalada"
-- Claude extrae los productos relevantes y actualiza el stock estimado
+- Claude extrae los productos relevantes y presenta sugerencia de descuento
 - Entrada manual en el dashboard de HA
 
 ---
