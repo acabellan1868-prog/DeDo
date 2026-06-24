@@ -1,9 +1,10 @@
 # DeDo — Hoja de ruta
 
-> Estado actual: Fase 1 completada. Fase 2 (tickets y precios) pendiente.
-> Última actualización: 2026-06-22
+> Estado actual: Fases 0, 1, 2 y 3 completadas. Pendiente verificación en Debian y arranque de Fase 4 (integración hogarOS).
+> Última actualización: 2026-06-24
 > **Próximo paso concreto:**
-> 1. 👤 Ejecutar `docker compose up` en local y verificar que los endpoints responden
+> 1. 👤 Ejecutar `actualizar.sh` en Debian y probar `POST /api/tickets` con un ticket de prueba
+> 2. 👤 Verificar que el stock se actualiza y FiDo recibe el movimiento
 
 ### Leyenda
 
@@ -80,13 +81,13 @@ CRUD completo de catálogo, stock, lista de la compra y caducidades. La base sob
 
 ---
 
-## Fase 2 — Tickets y precios
+## Fase 2 — Tickets y precios ✅
 
 Procesado de tickets de compra: actualiza stock, registra precios históricos y notifica el gasto a FiDo.
 
 ### 2a — Procesado de tickets
 
-- [ ] 🤖 `app/rutas/tickets.py`:
+- [x] 🤖 `app/rutas/tickets.py`:
   - `POST /api/ticket` — recibe las líneas de un ticket (supermercado, fecha, total, líneas con producto + cantidad + precio)
   - Lógica: para cada línea, busca el producto en catálogo por nombre (fuzzy match básico); si no existe, crea entrada con `estado = 'por_definir'`
   - Actualiza stock (suma cantidad a la entrada existente o crea nueva)
@@ -96,24 +97,24 @@ Procesado de tickets de compra: actualiza stock, registra precios históricos y 
 
 ### 2b — Historial de precios
 
-- [ ] 🤖 `app/rutas/precios.py`:
+- [x] 🤖 `app/rutas/precios.py`:
   - `GET /api/precios/{producto_id}` — historial de precios de un producto (por supermercado y fecha)
-  - `GET /api/precios/comparativa` — coste estimado de la lista actual en cada supermercado (usando últimos precios registrados)
+  - `GET /api/precios/comparativa/lista` — coste estimado de la lista actual en cada supermercado (usando últimos precios registrados)
 
 ### 2c — Notificación a FiDo
 
-- [ ] 🤖 `app/fido_client.py` — cliente HTTP para llamar a FiDo:
+- [x] 🤖 `app/fido_client.py` — cliente HTTP para llamar a FiDo:
   - `POST {FIDO_API_URL}/api/movimientos` — enviar gasto total al procesar un ticket (importe, comercio, fecha)
   - Manejo de errores: si FiDo no responde, loguear pero no fallar el procesado del ticket
 
 ### 2d — Verificación
 
-- [ ] 👤 Probar endpoint `POST /api/ticket` con un ticket de prueba
+- [ ] 👤 Probar endpoint `POST /api/tickets` con un ticket de prueba
 - [ ] 👤 Verificar que el stock se actualiza y que FiDo recibe el movimiento
 
 ---
 
-## Fase 3 — Frontend Cockpit
+## Fase 3 — Frontend Cockpit ✅
 
 Dashboard web siguiendo el estilo Cockpit del ecosistema hogarOS. Carga `hogar.css` vía proxy.
 
@@ -272,11 +273,11 @@ Cadencias de consumo, predicciones de reposición y comparativa avanzada de prec
 ```
 Fase 0 (esqueleto) ✅
     ↓
-Fase 1 (backend core)
+Fase 1 (backend core) ✅
     ↓
-Fase 2 (tickets + precios)    Fase 3 (frontend)
-    ↓                              ↓
-Fase 4 (integración hogarOS) ←────┘
+Fase 2 (tickets + precios) ✅    Fase 3 (frontend) ✅
+    ↓                                  ↓
+Fase 4 (integración hogarOS) ←─────────┘
     ↓
 Fase 5 (rutinas Claude Code)
     ↓
