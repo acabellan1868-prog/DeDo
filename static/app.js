@@ -194,8 +194,8 @@ function filtrarCatalogo(f) {
 function renderCatalogo() {
     const contenedor = document.getElementById('catalogo-lista');
     const filtrado = _catalogoFiltro === 'todos'      ? _catalogoItems
-        : _catalogoFiltro === 'activo'    ? _catalogoItems.filter(i => i.activo)
-        : _catalogoItems.filter(i => !i.activo);
+        : _catalogoFiltro === 'activo'    ? _catalogoItems.filter(i => i.estado === 'activo')
+        : _catalogoItems.filter(i => i.estado === _catalogoFiltro);
     if (!filtrado.length) {
         contenedor.innerHTML = '<div class="dedo-cargando">Sin resultados.</div>';
         return;
@@ -204,7 +204,7 @@ function renderCatalogo() {
 }
 
 function renderCardCatalogo(item) {
-    const badge = item.activo
+    const badge = item.estado === 'activo'
         ? '<span class="dedo-card-catalogo__badge dedo-card-catalogo__badge--activo">Activo</span>'
         : '<span class="dedo-card-catalogo__badge">Inactivo</span>';
     const meta = [item.categoria, item.marca].filter(Boolean).join(' · ');
