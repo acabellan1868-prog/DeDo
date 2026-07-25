@@ -1,10 +1,10 @@
 # DeDo — Hoja de ruta
 
-> Estado actual: Fases 0, 1, 2 y 3 completadas. Pendiente verificación en Debian y arranque de Fase 4 (integración hogarOS).
-> Última actualización: 2026-06-24
+> Estado actual: Fases 0-3 completadas. Fase 4 (integración hogarOS) casi completa: DeDo en producción, accesible en `http://192.168.31.131/despensa/`, enlazado en el nav y el drawer del portal. Solo falta la tarjeta resumen en el bento grid.
+> Última actualización: 2026-07-25
 > **Próximo paso concreto:**
-> 1. 👤 Ejecutar `actualizar.sh` en Debian y probar `POST /api/tickets` con un ticket de prueba
-> 2. 👤 Verificar que el stock se actualiza y FiDo recibe el movimiento
+> 1. 🤖 Añadir tarjeta "Despensa" al bento grid de `hogarOS/portal/index.html` consumiendo `GET /despensa/api/resumen`
+> 2. 👤 Verificar la tarjeta en el portal con datos reales
 
 ### Leyenda
 
@@ -152,11 +152,11 @@ Dashboard web siguiendo el estilo Cockpit del ecosistema hogarOS. Carga `hogar.c
 
 Añadir DeDo al ecosistema: proxy nginx, docker-compose y tarjeta en el portal.
 
-- [ ] 🤖 `hogarOS/nginx.conf` — nueva ruta `/despensa/` → `dedo:8080`
-- [ ] 🤖 `hogarOS/nginx.conf` — nueva ruta `/despensa/static/` → `portal/static/` (para hogar.css, mismo patrón que ReDo/FiDo)
-- [ ] 🤖 `hogarOS/docker-compose.yml` — nuevo servicio `dedo` (puerto 8085:8080, volumen `/mnt/datos/dedo`)
-- [ ] 🤖 `hogarOS/.env.example` — añadir variables de DeDo (`DEDO_DB_PATH`, `NTFY_TOPIC`, `FIDO_API_URL`)
-- [ ] 🤖 `app/rutas/resumen.py` — endpoint `GET /api/resumen` para la tarjeta del portal:
+- [x] 🤖 `hogarOS/nginx.conf` — nueva ruta `/despensa/` → `dedo:8080`
+- [x] 🤖 `hogarOS/nginx.conf` — nueva ruta `/despensa/static/` → `portal/static/` (para hogar.css, mismo patrón que ReDo/FiDo)
+- [x] 🤖 `hogarOS/docker-compose.yml` — nuevo servicio `dedo` (puerto 8085:8080, volumen `/mnt/datos/dedo`)
+- [x] 🤖 `hogarOS/.env.example` — añadir variables de DeDo (reutiliza `NTFY_TOPIC_ALERTAS`)
+- [x] 🤖 `app/rutas/resumen.py` — endpoint `GET /api/resumen` para la tarjeta del portal:
   ```json
   {
     "productos_en_lista": 8,
@@ -166,10 +166,10 @@ Añadir DeDo al ecosistema: proxy nginx, docker-compose y tarjeta en el portal.
   }
   ```
 - [ ] 🤖 `hogarOS/portal/index.html` — nueva tarjeta "Despensa" en el bento grid
-- [ ] 👤 Crear `/mnt/datos/dedo/` en la VM
-- [ ] 👤 Clonar repo DeDo en `/mnt/datos/dedo-build/` en la VM
-- [ ] 👤 Ejecutar `actualizar.sh` en la VM
-- [ ] 👤 Verificar acceso desde red local: `http://192.168.31.131/despensa/`
+- [x] 👤 Crear `/mnt/datos/dedo/` en la VM
+- [x] 👤 Clonar repo DeDo en `/mnt/datos/dedo-build/` en la VM
+- [x] 👤 Ejecutar `actualizar.sh` en la VM
+- [x] 👤 Verificar acceso desde red local: `http://192.168.31.131/despensa/`
 - [ ] 👤 Verificar tarjeta en el portal con datos reales
 
 ---
