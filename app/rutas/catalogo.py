@@ -35,10 +35,10 @@ def crear_producto(datos: ProductoCrear):
     """Crea un nuevo producto en el catálogo."""
     nuevo_id = bd.ejecutar(
         """INSERT INTO catalogo
-           (nombre, marca, categoria, descripcion_visual, supermercado_habitual,
+           (nombre, marca, categoria, descripcion_visual, zona, supermercado_habitual,
             stock_minimo, unidad, caducidad_dias_defecto, estado)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
-        (datos.nombre, datos.marca, datos.categoria, datos.descripcion_visual,
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+        (datos.nombre, datos.marca, datos.categoria, datos.descripcion_visual, datos.zona,
          datos.supermercado_habitual, datos.stock_minimo, datos.unidad,
          datos.caducidad_dias_defecto, datos.estado),
     )

@@ -14,6 +14,7 @@ class ProductoRespuesta(BaseModel):
     marca: Optional[str] = None
     categoria: Optional[str] = None
     descripcion_visual: Optional[str] = None
+    zona: Optional[str] = None
     supermercado_habitual: Optional[str] = None
     stock_minimo: float = 1
     unidad: str = "unidad"
@@ -27,6 +28,7 @@ class ProductoCrear(BaseModel):
     marca: Optional[str] = None
     categoria: Optional[str] = None
     descripcion_visual: Optional[str] = None
+    zona: Optional[str] = None
     supermercado_habitual: Optional[str] = None
     stock_minimo: float = 1
     unidad: str = "unidad"
@@ -39,6 +41,7 @@ class ProductoActualizar(BaseModel):
     marca: Optional[str] = None
     categoria: Optional[str] = None
     descripcion_visual: Optional[str] = None
+    zona: Optional[str] = None
     supermercado_habitual: Optional[str] = None
     stock_minimo: Optional[float] = None
     unidad: Optional[str] = None
