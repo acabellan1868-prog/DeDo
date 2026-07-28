@@ -1,10 +1,11 @@
 # DeDo — Hoja de ruta
 
-> Estado actual: Fases 0-3 completadas. Fase 4 (integración hogarOS) casi completa: DeDo en producción, accesible en `http://192.168.31.131/despensa/`, enlazado en el nav y el drawer del portal. Solo falta la tarjeta resumen en el bento grid.
-> Última actualización: 2026-07-25
+> Estado actual: Fases 0-3 completadas. Fase 4 (integración hogarOS) casi completa, solo falta la tarjeta resumen en el bento grid. Catálogo poblado con 40 productos reales (Mercadona) con descripción visual; stock aún vacío. Campo `zona` conectado al API (commit `b3ae39e`) pendiente de desplegar. Bug de badge Activo/Inactivo corregido y en producción. Detalle completo en `bitacora.md`.
+> Última actualización: 2026-07-28
 > **Próximo paso concreto:**
-> 1. 🤖 Añadir tarjeta "Despensa" al bento grid de `hogarOS/portal/index.html` consumiendo `GET /despensa/api/resumen`
-> 2. 👤 Verificar la tarjeta en el portal con datos reales
+> 1. 👤 Ejecutar `actualizar.sh` en la VM para desplegar el campo `zona`
+> 2. 🤖 Enviar los 40 valores de `zona` ya preparados, una vez desplegado
+> 3. 👤 Aportar el stock real para cargar la pestaña Despensa
 
 ### Leyenda
 
