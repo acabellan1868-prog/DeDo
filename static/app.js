@@ -63,7 +63,11 @@ async function post(ruta, body) {
 }
 async function del(ruta) {
     const r = await fetch(API + ruta, { method: 'DELETE' });
-    if (!r.ok) throw new Error(r.status);
+    if (!r.ok) {
+        let detalle = '';
+        try { detalle = (await r.json()).detail; } catch (e) {}
+        throw new Error(detalle || ('HTTP ' + r.status));
+    }
 }
 async function patch(ruta, body) {
     const r = await fetch(API + ruta, {
@@ -287,7 +291,7 @@ async function borrarProducto(id) {
     try {
         await del('/catalogo/' + id);
         cargarCatalogo();
-    } catch (e) { alert('Error al borrar.'); }
+    } catch (e) { alert(e.message || 'Error al borrar.'); }
 }
 
 /* ══════════════════════════════════════════
