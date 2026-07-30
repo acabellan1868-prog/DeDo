@@ -28,24 +28,29 @@ def inicializar_bd():
 def consultar_todos(sql: str, parametros: tuple = ()) -> list[dict]:
     """Ejecuta SELECT y devuelve todas las filas como lista de dicts."""
     conn = obtener_conexion()
-    filas = conn.execute(sql, parametros).fetchall()
-    conn.close()
-    return [dict(fila) for fila in filas]
+    try:
+        filas = conn.execute(sql, parametros).fetchall()
+        return [dict(fila) for fila in filas]
+    finally:
+        conn.close()
 
 
 def consultar_uno(sql: str, parametros: tuple = ()) -> dict | None:
     """Ejecuta SELECT y devuelve una fila como dict, o None."""
     conn = obtener_conexion()
-    fila = conn.execute(sql, parametros).fetchone()
-    conn.close()
-    return dict(fila) if fila else None
+    try:
+        fila = conn.execute(sql, parametros).fetchone()
+        return dict(fila) if fila else None
+    finally:
+        conn.close()
 
 
 def ejecutar(sql: str, parametros: tuple = ()) -> int:
     """Ejecuta INSERT/UPDATE/DELETE y devuelve el lastrowid."""
     conn = obtener_conexion()
-    cursor = conn.execute(sql, parametros)
-    conn.commit()
-    ultimo_id = cursor.lastrowid
-    conn.close()
-    return ultimo_id
+    try:
+        cursor = conn.execute(sql, parametros)
+        conn.commit()
+        return cursor.lastrowid
+    finally:
+        conn.close()
