@@ -1,5 +1,7 @@
 """DeDo — Endpoints del catálogo de productos."""
 
+import sqlite3
+
 from fastapi import APIRouter, HTTPException
 from app import bd
 from app.modelos import ProductoRespuesta, ProductoCrear, ProductoActualizar
@@ -74,4 +76,10 @@ def eliminar_producto(producto_id: int):
     existente = bd.consultar_uno("SELECT * FROM catalogo WHERE id = ?", (producto_id,))
     if not existente:
         raise HTTPException(404, "Producto no encontrado")
-    bd.ejecutar("DELETE FROM catalogo WHERE id = ?", (producto_id,))
+    try:
+        bd.ejecutar("DELETE FROM catalogo WHERE id = ?", (producto_id,))
+    except sqlite3.IntegrityError:
+        raise HTTPException(
+            409,
+            "No se puede borrar: el producto tiene stock, tickets o histórico de precios asociados",
+        )

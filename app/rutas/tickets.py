@@ -147,6 +147,37 @@ def obtener_ticket(ticket_id: int):
     return _ticket_con_lineas(ticket_id)
 
 
+@ruta.delete("/{ticket_id}", status_code=204)
+def eliminar_ticket(ticket_id: int):
+    """Deshace un ticket: revierte el stock que sumó, borra su histórico de
+    precios y sus líneas, y finalmente el propio ticket."""
+    ticket = bd.consultar_uno("SELECT * FROM tickets WHERE id = ?", (ticket_id,))
+    if not ticket:
+        raise HTTPException(404, "Ticket no encontrado")
+
+    lineas = bd.consultar_todos(
+        "SELECT producto_id, cantidad FROM lineas_ticket WHERE ticket_id = ?",
+        (ticket_id,),
+    )
+    for linea in lineas:
+        if not linea["producto_id"] or not linea["cantidad"]:
+            continue
+        entrada = bd.consultar_uno(
+            "SELECT id FROM stock WHERE producto_id = ? ORDER BY id LIMIT 1",
+            (linea["producto_id"],),
+        )
+        if entrada:
+            bd.ejecutar(
+                "UPDATE stock SET cantidad = cantidad - ?, actualizado_en = datetime('now') WHERE id = ?",
+                (linea["cantidad"], entrada["id"]),
+            )
+
+    bd.ejecutar("DELETE FROM historial_precios WHERE ticket_id = ?", (ticket_id,))
+    bd.ejecutar("DELETE FROM lineas_ticket WHERE ticket_id = ?", (ticket_id,))
+    bd.ejecutar("DELETE FROM tickets WHERE id = ?", (ticket_id,))
+    logger.info("Ticket #%d deshecho: stock revertido, líneas e histórico borrados", ticket_id)
+
+
 def _ticket_con_lineas(ticket_id: int) -> dict:
     """Devuelve un ticket enriquecido con sus líneas y nombre de producto."""
     ticket = bd.consultar_uno("SELECT * FROM tickets WHERE id = ?", (ticket_id,))
