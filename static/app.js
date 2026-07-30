@@ -65,6 +65,15 @@ async function del(ruta) {
     const r = await fetch(API + ruta, { method: 'DELETE' });
     if (!r.ok) throw new Error(r.status);
 }
+async function patch(ruta, body) {
+    const r = await fetch(API + ruta, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+    });
+    if (!r.ok) throw new Error(r.status);
+    return r.json();
+}
 
 /* ══════════════════════════════════════════
    PESTAÑA: DESPENSA (stock)
@@ -213,7 +222,72 @@ function renderCardCatalogo(item) {
         <div class="dedo-card-catalogo__nombre">${esc(item.nombre)}</div>
         ${meta ? `<div class="dedo-card-catalogo__meta">${esc(meta)}</div>` : ''}
         ${badge}
+        <div class="dedo-card-catalogo__acciones">
+            <button class="dedo-card-catalogo__accion" onclick="editarProducto(${item.id})" title="Editar">✎</button>
+            <button class="dedo-card-catalogo__accion dedo-card-catalogo__accion--borrar" onclick="borrarProducto(${item.id})" title="Borrar">✕</button>
+        </div>
     </div>`;
+}
+
+function mostrarFormCatalogo(item) {
+    document.getElementById('cat-editando-id').value      = item ? item.id : '';
+    document.getElementById('cat-input-nombre').value      = item ? (item.nombre || '') : '';
+    document.getElementById('cat-input-marca').value       = item ? (item.marca || '') : '';
+    document.getElementById('cat-input-categoria').value   = item ? (item.categoria || '') : '';
+    document.getElementById('cat-input-zona').value        = item ? (item.zona || '') : '';
+    document.getElementById('cat-input-unidad').value      = item ? (item.unidad || '') : '';
+    document.getElementById('cat-input-stockmin').value    = item ? (item.stock_minimo ?? '') : '';
+    document.getElementById('cat-input-caducidad').value   = item ? (item.caducidad_dias_defecto ?? '') : '';
+    document.getElementById('cat-input-super').value       = item ? (item.supermercado_habitual || '') : '';
+    document.getElementById('cat-input-estado').value      = item ? (item.estado || 'activo') : 'activo';
+    document.getElementById('cat-input-descripcion').value = item ? (item.descripcion_visual || '') : '';
+    document.getElementById('form-catalogo').classList.remove('dedo-form--oculto');
+}
+
+function ocultarFormCatalogo() {
+    document.getElementById('form-catalogo').classList.add('dedo-form--oculto');
+}
+
+function editarProducto(id) {
+    const item = _catalogoItems.find(i => i.id === id);
+    if (item) mostrarFormCatalogo(item);
+}
+
+async function guardarProducto() {
+    const nombre = document.getElementById('cat-input-nombre').value.trim();
+    if (!nombre) { alert('El nombre es obligatorio.'); return; }
+    const idEditando = document.getElementById('cat-editando-id').value;
+    const stockMin    = parseFloat(document.getElementById('cat-input-stockmin').value);
+    const caducidad   = parseInt(document.getElementById('cat-input-caducidad').value, 10);
+    const payload = {
+        nombre,
+        marca: document.getElementById('cat-input-marca').value.trim() || null,
+        categoria: document.getElementById('cat-input-categoria').value.trim() || null,
+        zona: document.getElementById('cat-input-zona').value.trim() || null,
+        unidad: document.getElementById('cat-input-unidad').value.trim() || 'unidad',
+        stock_minimo: isNaN(stockMin) ? 1 : stockMin,
+        caducidad_dias_defecto: isNaN(caducidad) ? null : caducidad,
+        supermercado_habitual: document.getElementById('cat-input-super').value.trim() || null,
+        estado: document.getElementById('cat-input-estado').value,
+        descripcion_visual: document.getElementById('cat-input-descripcion').value.trim() || null,
+    };
+    try {
+        if (idEditando) {
+            await patch('/catalogo/' + idEditando, payload);
+        } else {
+            await post('/catalogo', payload);
+        }
+        ocultarFormCatalogo();
+        cargarCatalogo();
+    } catch (e) { alert('Error al guardar.'); }
+}
+
+async function borrarProducto(id) {
+    if (!confirm('¿Borrar este producto del catálogo?')) return;
+    try {
+        await del('/catalogo/' + id);
+        cargarCatalogo();
+    } catch (e) { alert('Error al borrar.'); }
 }
 
 /* ══════════════════════════════════════════

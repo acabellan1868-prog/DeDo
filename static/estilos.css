@@ -257,6 +257,25 @@ body {
 }
 .dedo-card-catalogo__badge--activo { background: rgba(34,197,94,0.15); color: #22c55e; }
 
+.dedo-card-catalogo__acciones {
+    display: flex;
+    gap: 0.3rem;
+    margin-top: 0.5rem;
+}
+.dedo-card-catalogo__accion {
+    width: 22px; height: 22px;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--ck-bg2);
+    border: 1px solid var(--ck-line);
+    color: var(--ck-on-variant);
+    font-size: 0.65rem;
+    cursor: pointer;
+    border-radius: 3px;
+    padding: 0;
+}
+.dedo-card-catalogo__accion:hover { color: var(--ck-on-surface); background: rgba(128,128,128,0.15); }
+.dedo-card-catalogo__accion--borrar:hover { color: var(--ck-danger, #ef4444); background: rgba(239,68,68,0.1); }
+
 /* ── Caducidades ── */
 .dedo-caducidades-cols {
     display: grid;
