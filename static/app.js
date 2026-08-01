@@ -44,6 +44,7 @@ function cambiarPestana(id) {
     if (id === 'lista')       cargarLista();
     if (id === 'catalogo')    cargarCatalogo();
     if (id === 'caducidades') cargarCaducidades();
+    if (id === 'tickets')     cargarTickets();
 }
 
 /* ── Helpers fetch ── */
@@ -349,6 +350,67 @@ function renderItemCaducidad(item, vencido) {
         <div class="dedo-item-caducidad__nombre">${esc(item.nombre_producto)}</div>
         <span class="dedo-item-caducidad__dias dedo-item-caducidad__dias--${cls}">${label}</span>
     </div>`;
+}
+
+/* ══════════════════════════════════════════
+   PESTAÑA: TICKETS
+══════════════════════════════════════════ */
+let _ticketsItems = [];
+
+async function cargarTickets() {
+    const contenedor = document.getElementById('tickets-lista');
+    contenedor.innerHTML = '<div class="dedo-cargando">Cargando tickets…</div>';
+    try {
+        _ticketsItems = await get('/tickets');
+        renderTickets();
+    } catch (e) {
+        contenedor.innerHTML = '<div class="dedo-cargando">Error al cargar.</div>';
+    }
+}
+
+function renderTickets() {
+    const contenedor = document.getElementById('tickets-lista');
+    if (!_ticketsItems.length) {
+        contenedor.innerHTML = '<div class="dedo-cargando">Sin tickets procesados.</div>';
+        return;
+    }
+    contenedor.innerHTML = _ticketsItems.map(renderCardTicket).join('');
+}
+
+function renderCardTicket(t) {
+    const lineas = t.lineas || [];
+    const lineasHtml = lineas.map(l => `
+        <div class="dedo-linea-ticket">
+            <span class="dedo-linea-ticket__nombre">${esc(l.nombre_producto || l.nombre_raw)}</span>
+            <span class="dedo-linea-ticket__cantidad">${l.cantidad ?? ''}</span>
+            <span class="dedo-linea-ticket__precio">${l.precio_total != null ? l.precio_total.toFixed(2) + ' €' : ''}</span>
+        </div>`).join('');
+    return `
+    <div class="dedo-card-ticket">
+        <div class="dedo-card-ticket__cabecera" onclick="toggleTicket(${t.id})">
+            <div class="dedo-card-ticket__info">
+                <div class="dedo-card-ticket__super">${esc(t.supermercado || 'Sin supermercado')}</div>
+                <div class="dedo-card-ticket__fecha">${esc(t.fecha || '—')} · ${lineas.length} líneas</div>
+            </div>
+            <div class="dedo-card-ticket__total">${t.total != null ? t.total.toFixed(2) + ' €' : ''}</div>
+            <button class="dedo-card-catalogo__accion dedo-card-catalogo__accion--borrar" onclick="event.stopPropagation(); borrarTicket(${t.id})" title="Deshacer ticket">✕</button>
+        </div>
+        <div class="dedo-card-ticket__lineas dedo-form--oculto" id="ticket-lineas-${t.id}">
+            ${lineasHtml}
+        </div>
+    </div>`;
+}
+
+function toggleTicket(id) {
+    document.getElementById('ticket-lineas-' + id).classList.toggle('dedo-form--oculto');
+}
+
+async function borrarTicket(id) {
+    if (!confirm('¿Deshacer este ticket? Se revertirá el stock que sumó y se borrará su histórico de precios.')) return;
+    try {
+        await del('/tickets/' + id);
+        cargarTickets();
+    } catch (e) { alert(e.message || 'Error al borrar.'); }
 }
 
 /* ── Utilidad escape HTML ── */

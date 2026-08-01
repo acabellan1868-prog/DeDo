@@ -326,15 +326,55 @@ body {
     grid-column: 1 / -1;
 }
 
-/* ── Próximamente ── */
-.dedo-proximamente {
+/* ── Tickets ── */
+.dedo-lista-tickets {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 0.75rem;
-    padding: 4rem 2rem;
-    color: var(--ck-on-variant);
+    gap: 0.5rem;
 }
-.dedo-proximamente span { font-size: 3rem; opacity: 0.4; }
-.dedo-proximamente p { font-size: 0.65rem; letter-spacing: 0.06em; text-transform: uppercase; margin: 0; }
+.dedo-card-ticket {
+    background: var(--ck-bg2);
+    border: 1px solid var(--ck-line);
+    border-radius: 4px;
+}
+.dedo-card-ticket__cabecera {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.6rem 0.75rem;
+    cursor: pointer;
+}
+.dedo-card-ticket__info { flex: 1; }
+.dedo-card-ticket__super {
+    font-size: 0.63rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--ck-on-surface);
+}
+.dedo-card-ticket__fecha {
+    font-size: 0.57rem;
+    color: var(--ck-on-variant);
+    margin-top: 0.15rem;
+}
+.dedo-card-ticket__total {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--ck-accent);
+}
+.dedo-card-ticket__lineas {
+    border-top: 1px solid var(--ck-line);
+    padding: 0.5rem 0.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+.dedo-linea-ticket {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 0.6rem;
+}
+.dedo-linea-ticket__nombre { flex: 1; color: var(--ck-on-surface); }
+.dedo-linea-ticket__cantidad { color: var(--ck-on-variant); width: 3rem; text-align: right; }
+.dedo-linea-ticket__precio { color: var(--ck-on-variant); width: 4rem; text-align: right; }
