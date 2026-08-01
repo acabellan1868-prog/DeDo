@@ -1,11 +1,12 @@
 # DeDo — Hoja de ruta
 
-> Estado actual: Fases 0-3 completadas. Fase 4 (integración hogarOS) casi completa, solo falta la tarjeta resumen en el bento grid. Catálogo con CRUD completo en el frontend (crear/editar/borrar). Ticket de prueba procesado y deshecho — reveló que el fuzzy-match de nombres no es fiable; arreglado con `producto_id` explícito opcional por línea. Nuevo estado `por_capturar` para encolar manualmente qué productos `por_definir` se enriquecen con datos del supermercado. Ambos cambios (commits `708ea25`, `09302f5`) pendientes de desplegar. Detalle completo en `bitacora.md`.
+> Estado actual: Fases 0-3 completadas. Fase 4 (integración hogarOS) casi completa, solo falta la tarjeta resumen en el bento grid. Catálogo con CRUD completo (crear/editar/borrar) y estado `por_capturar` para encolar enriquecimiento manual. `producto_id` explícito por línea de ticket resuelve el fuzzy-match poco fiable — confirmado con un ticket real (id 5, 25 líneas, 0 errores de emparejamiento). Hubo un incidente de datos (migración rompió FKs de stock/lista/tickets/histórico apuntando a una tabla renombrada y luego borrada) ya diagnosticado y arreglado (commit `ad9b525`) — sin pérdida real porque era fase de pruebas. Pestaña Tickets ahora funcional (listado + líneas expandibles + borrado), commit `6f8adf8`, pendiente de desplegar. Detalle línea a línea de todo esto en `bitacora.md`, entrada "2026-08-01 (continuación)".
 > Última actualización: 2026-08-01
 > **Próximo paso concreto:**
-> 1. 👤 Ejecutar `actualizar.sh` en la VM
-> 2. 🤖 Procesar `ticket_20260801-1411.pdf` (ya en la carpeta Drive `DeDo/Tickets/`) con `producto_id` explícito
-> 3. 👤 Probar el botón "Capturar producto" y decidir qué productos `por_definir` enriquecer primero
+> 1. 👤 Ejecutar `actualizar.sh` en la VM para desplegar la pestaña Tickets (commit `6f8adf8`)
+> 2. 👤 Verificar visualmente el ticket #5 en la pestaña Tickets (25 líneas correctas al expandir)
+> 3. 👤 Decidir qué hacer con los 25 productos `por_definir` que dejó el ticket #5 (dejarlos, o probar "Capturar producto")
+> 4. 🤖/👤 Diseñar la tarea programada de Cowork para automatizar la lectura de tickets desde `Drive/DeDo/Tickets/` (sin empezar)
 
 ### Leyenda
 

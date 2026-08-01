@@ -1,5 +1,121 @@
 # Bitácora — DeDo
 
+## 2026-08-01 (continuación) — Incidente de datos, fix de claves foráneas, ticket real procesado con éxito y pestaña Tickets
+
+### Contexto
+Continuación directa de la sesión anterior (mismo día). Tras desplegar `por_capturar`
+(commit `09302f5`) con `actualizar.sh`, se detectó un problema grave de datos.
+
+### Incidente: base de datos vaciada tras el despliegue
+Al comprobar el catálogo tras el despliegue, `GET /api/catalogo`, `/api/stock` y
+`/api/tickets` devolvían todos `[]`. El stock y los tickets vacíos eran intencionados
+(se habían borrado a mano en la sesión anterior para deshacer el ticket de prueba),
+pero el **catálogo con los 40 productos de Mercadona había desaparecido**, sin que
+nadie lo borrara explícitamente.
+
+**Causa raíz identificada:** la migración `_migrar_estado_por_capturar()` (añadida en
+`09302f5`) reconstruye la tabla `catalogo` con `ALTER TABLE catalogo RENAME TO
+catalogo_old` → `CREATE TABLE catalogo (...)` → `INSERT ... SELECT ... FROM
+catalogo_old` → `DROP TABLE catalogo_old`. Desde SQLite 3.25, **renombrar una tabla
+reescribe automáticamente las referencias de clave foránea de las demás tablas que
+apuntan a ella** (para no romperlas) — así que `stock`, `lista_compra`,
+`lineas_ticket`, `historial_precios` y `menu_productos` pasaron a apuntar a
+`catalogo_old`. Al borrar esa tabla, quedaron con una FK colgando de un nombre
+inexistente. Cualquier `INSERT` que dependiera de esa FK (stock, lista, líneas de
+ticket, histórico de precios) empezó a fallar con 500 en bruto — confirmado
+probando `POST /api/stock` y `POST /api/lista` directamente, sin pasar por tickets.
+
+Adicionalmente, la migración usaba un `BEGIN` explícito sobre una conexión con el
+`isolation_level` por defecto de Python — que **comete implícitamente cualquier
+transacción abierta justo antes de una sentencia DDL** (`CREATE`/`ALTER`/`DROP`),
+así que la "transacción atómica" nunca lo fue realmente: cada sentencia DDL se
+autocometía por separado. Esto probablemente contribuyó a que el catálogo acabase
+vacío si algo falló a mitad de la secuencia.
+
+### Fix aplicado (commit `ad9b525`)
+- **`_conexion_para_migracion()`**: nueva conexión con `isolation_level=None`, que
+  desactiva la gestión implícita de transacciones de Python. Con esto, `BEGIN` /
+  `COMMIT` / `ROLLBACK` explícitos controlan de verdad toda la secuencia de
+  sentencias DDL como una unidad atómica real.
+- **`_reparar_fk_catalogo()`**: nueva función que detecta qué tablas tienen la FK
+  rota (`"REFERENCES catalogo(id)"` ausente de su definición) y las reconstruye
+  (rename → create con la definición correcta → copiar datos → drop), todo con
+  `PRAGMA foreign_keys = OFF` durante la operación y `PRAGMA foreign_key_check`
+  antes de confirmar, siguiendo el procedimiento oficial que documenta SQLite para
+  este tipo de cambios de esquema.
+- Ambas migraciones (`_migrar_estado_por_capturar` y `_reparar_fk_catalogo`) se
+  ejecutan siempre al arrancar (`inicializar_bd()`), son idempotentes (comprueban
+  el estado actual antes de actuar).
+
+**Verificado tras desplegar:** `POST /api/stock` y `POST /api/lista` ya devuelven
+201 correctamente. Los 25 productos que ya se habían creado como prueba antes del
+fix sobrevivieron intactos.
+
+Nota importante para el usuario/futuras sesiones: como se acordó explícitamente,
+esto ocurrió en fase de desarrollo sin datos reales en juego — no se considera un
+incidente grave, pero deja como aprendizaje que las reconstrucciones de tablas en
+SQLite necesitan `PRAGMA foreign_keys = OFF` + verificación `foreign_key_check`
++ revisar también las tablas dependientes, no solo la tabla que se modifica.
+
+### Ticket real procesado con éxito: producto_id explícito funciona
+Con la base de datos reparada, se reprocesó `ticket_20260801-1411.pdf` (Mercadona,
+tienda física, 01/08/2026, 54,01 €, 25 líneas) — el ticket que esperaba en
+`Drive/DeDo/Tickets/`. Como el catálogo estaba vacío, se crearon los 25 productos
+uno a uno (`POST /api/catalogo`, solo nombre legible + categoría básica, sin buscar
+en la API de Mercadona — según el criterio acordado de rapidez para los primeros
+tickets), y se envió el ticket con `producto_id` explícito en cada línea.
+
+**Resultado: las 25 líneas casaron exactamente 1:1 con su producto**, sin ninguna
+mezcla — a diferencia del primer intento (sesión anterior) donde el fuzzy-match
+automático mezcló cantidades entre productos no relacionados. Confirma que la
+solución de `producto_id` explícito (commit `708ea25`) resuelve el problema de raíz.
+
+- Ticket creado: **id 5**
+- Stock: 25 entradas nuevas, cantidades correctas (incluyendo `Tomate canario` con
+  0,598 kg, un producto por peso)
+- Catálogo: 25 productos nuevos con estado `por_definir`, candidatos para el flujo
+  de "Capturar producto" cuando se decida cuáles enriquecer
+
+### Pestaña Tickets: de placeholder a funcional (commit `6f8adf8`)
+La pestaña Tickets solo mostraba "Procesado de tickets — disponible en la Fase 2",
+pese a que el backend (`GET /api/tickets`, `GET /api/tickets/{id}`, `DELETE
+/api/tickets/{id}`) llevaba tiempo listo. Añadido:
+- Listado de tickets (supermercado, fecha, total, nº de líneas)
+- Tarjeta expandible al hacer clic — muestra las líneas (producto, cantidad, precio)
+- Botón "✕" por ticket que llama al `DELETE /api/tickets/{id}` ya existente
+  (revierte stock, borra histórico de precios y líneas)
+- Eliminado el CSS `.dedo-proximamente`, que quedó huérfano
+
+### Estado final de la sesión
+- **Base de datos reparada y funcionando**: catálogo, stock, lista y tickets
+  aceptan inserciones correctamente.
+- **Catálogo**: 25 productos reales del ticket #5, todos `por_definir`, sin
+  descripción visual ni zona (no se enriquecieron, según lo acordado).
+- **Despensa**: 25 entradas de stock reales.
+- **Ticket #5**: procesado y visible por API; pendiente de verificar visualmente
+  en la nueva pestaña Tickets (código pusheado, falta `actualizar.sh`).
+- **Drive `DeDo/Tickets/`**: el ticket ya procesado (`ticket_20260801-1411.pdf`)
+  sigue en la carpeta — no hay lógica de mover a "procesados" todavía (eso es
+  parte del diseño de la futura tarea de Cowork, no implementado aún).
+
+### Commits de esta sesión (continuación del mismo día)
+- `ad9b525` — fix de FK colgadas + migraciones atómicas de verdad
+- `6f8adf8` — pestaña Tickets funcional
+
+### Próximo paso concreto
+1. 👤 Ejecutar `actualizar.sh` en la VM para desplegar la pestaña Tickets
+   (commit `6f8adf8`)
+2. 👤 Verificar visualmente que el ticket #5 aparece en la pestaña Tickets, con
+   sus 25 líneas correctas al expandir
+3. 👤 Decidir qué hacer con los 25 productos `por_definir` del ticket #5: dejarlos,
+   o empezar a probar el botón "Capturar producto" con alguno
+4. 🤖/👤 Diseñar y montar la tarea programada de Cowork para automatizar la
+   lectura de tickets de `Drive/DeDo/Tickets/` (pendiente desde antes, sin empezar)
+5. 👤 Aportar el stock real completo de la despensa (más allá de lo que ya
+   aportó este ticket) cuando se quiera dejar de estar en modo prueba
+
+---
+
 ## 2026-07-30/08-01 — CRUD de catálogo, ticket real de prueba, producto_id explícito y estado por_capturar
 
 ### Contexto
