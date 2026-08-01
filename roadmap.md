@@ -1,11 +1,11 @@
 # DeDo — Hoja de ruta
 
-> Estado actual: Fases 0-3 completadas. Fase 4 (integración hogarOS) casi completa, solo falta la tarjeta resumen en el bento grid. Catálogo poblado con 40 productos reales (Mercadona) con descripción visual; stock aún vacío. Campo `zona` conectado al API (commit `b3ae39e`) pendiente de desplegar. Bug de badge Activo/Inactivo corregido y en producción. Detalle completo en `bitacora.md`.
-> Última actualización: 2026-07-28
+> Estado actual: Fases 0-3 completadas. Fase 4 (integración hogarOS) casi completa, solo falta la tarjeta resumen en el bento grid. Catálogo con CRUD completo en el frontend (crear/editar/borrar). Ticket de prueba procesado y deshecho — reveló que el fuzzy-match de nombres no es fiable; arreglado con `producto_id` explícito opcional por línea. Nuevo estado `por_capturar` para encolar manualmente qué productos `por_definir` se enriquecen con datos del supermercado. Ambos cambios (commits `708ea25`, `09302f5`) pendientes de desplegar. Detalle completo en `bitacora.md`.
+> Última actualización: 2026-08-01
 > **Próximo paso concreto:**
-> 1. 👤 Ejecutar `actualizar.sh` en la VM para desplegar el campo `zona`
-> 2. 🤖 Enviar los 40 valores de `zona` ya preparados, una vez desplegado
-> 3. 👤 Aportar el stock real para cargar la pestaña Despensa
+> 1. 👤 Ejecutar `actualizar.sh` en la VM
+> 2. 🤖 Procesar `ticket_20260801-1411.pdf` (ya en la carpeta Drive `DeDo/Tickets/`) con `producto_id` explícito
+> 3. 👤 Probar el botón "Capturar producto" y decidir qué productos `por_definir` enriquecer primero
 
 ### Leyenda
 
