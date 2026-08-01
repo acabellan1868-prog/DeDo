@@ -216,21 +216,39 @@ function renderCatalogo() {
     contenedor.innerHTML = filtrado.map(renderCardCatalogo).join('');
 }
 
+const ETIQUETAS_ESTADO = {
+    activo: { texto: 'Activo', clase: 'dedo-card-catalogo__badge--activo' },
+    por_definir: { texto: 'Por definir', clase: '' },
+    por_capturar: { texto: 'Por capturar', clase: 'dedo-card-catalogo__badge--capturar' },
+};
+
 function renderCardCatalogo(item) {
-    const badge = item.estado === 'activo'
-        ? '<span class="dedo-card-catalogo__badge dedo-card-catalogo__badge--activo">Activo</span>'
-        : '<span class="dedo-card-catalogo__badge">Inactivo</span>';
+    const etiqueta = ETIQUETAS_ESTADO[item.estado] || ETIQUETAS_ESTADO.por_definir;
+    const badge = `<span class="dedo-card-catalogo__badge ${etiqueta.clase}">${etiqueta.texto}</span>`;
     const meta = [item.categoria, item.marca].filter(Boolean).join(' · ');
+    const accionCaptura = item.estado === 'por_definir'
+        ? `<button class="dedo-btn dedo-btn--alerta" onclick="marcarParaCaptura(${item.id})">Capturar producto</button>`
+        : item.estado === 'por_capturar'
+            ? '<div class="dedo-card-catalogo__en-cola">⏳ En cola de captura</div>'
+            : '';
     return `
     <div class="dedo-card-catalogo">
         <div class="dedo-card-catalogo__nombre">${esc(item.nombre)}</div>
         ${meta ? `<div class="dedo-card-catalogo__meta">${esc(meta)}</div>` : ''}
         ${badge}
+        ${accionCaptura}
         <div class="dedo-card-catalogo__acciones">
             <button class="dedo-card-catalogo__accion" onclick="editarProducto(${item.id})" title="Editar">✎</button>
             <button class="dedo-card-catalogo__accion dedo-card-catalogo__accion--borrar" onclick="borrarProducto(${item.id})" title="Borrar">✕</button>
         </div>
     </div>`;
+}
+
+async function marcarParaCaptura(id) {
+    try {
+        await patch('/catalogo/' + id, { estado: 'por_capturar' });
+        cargarCatalogo();
+    } catch (e) { alert(e.message || 'Error al marcar para captura.'); }
 }
 
 function mostrarFormCatalogo(item) {

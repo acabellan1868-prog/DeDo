@@ -18,11 +18,57 @@ def obtener_conexion() -> sqlite3.Connection:
 
 
 def inicializar_bd():
-    """Crea las tablas si no existen ejecutando esquema.sql."""
+    """Crea las tablas si no existen ejecutando esquema.sql, y aplica migraciones."""
     ruta_esquema = Path(__file__).parent / "esquema.sql"
     conn = obtener_conexion()
     conn.executescript(ruta_esquema.read_text(encoding="utf-8"))
     conn.close()
+    _migrar_estado_por_capturar()
+
+
+def _migrar_estado_por_capturar():
+    """Añade 'por_capturar' al CHECK de catalogo.estado si falta.
+
+    SQLite no permite modificar un CHECK con ALTER TABLE, así que hay que
+    reconstruir la tabla conservando los datos existentes.
+    """
+    conn = obtener_conexion()
+    try:
+        definicion = conn.execute(
+            "SELECT sql FROM sqlite_master WHERE type='table' AND name='catalogo'"
+        ).fetchone()
+        if not definicion or "por_capturar" in definicion[0]:
+            return
+
+        conn.execute("ALTER TABLE catalogo RENAME TO catalogo_old")
+        conn.execute(
+            """CREATE TABLE catalogo (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                nombre TEXT NOT NULL,
+                marca TEXT,
+                categoria TEXT,
+                descripcion_visual TEXT,
+                zona TEXT,
+                supermercado_habitual TEXT,
+                stock_minimo REAL DEFAULT 1,
+                unidad TEXT DEFAULT 'unidad',
+                caducidad_dias_defecto INTEGER,
+                estado TEXT DEFAULT 'activo' CHECK(estado IN ('activo', 'por_definir', 'por_capturar')),
+                creado_en TEXT DEFAULT (datetime('now'))
+            )"""
+        )
+        conn.execute(
+            """INSERT INTO catalogo
+               (id, nombre, marca, categoria, descripcion_visual, zona, supermercado_habitual,
+                stock_minimo, unidad, caducidad_dias_defecto, estado, creado_en)
+               SELECT id, nombre, marca, categoria, descripcion_visual, zona, supermercado_habitual,
+                      stock_minimo, unidad, caducidad_dias_defecto, estado, creado_en
+               FROM catalogo_old"""
+        )
+        conn.execute("DROP TABLE catalogo_old")
+        conn.commit()
+    finally:
+        conn.close()
 
 
 def consultar_todos(sql: str, parametros: tuple = ()) -> list[dict]:

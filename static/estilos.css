@@ -256,6 +256,13 @@ body {
     color: var(--ck-on-variant);
 }
 .dedo-card-catalogo__badge--activo { background: rgba(34,197,94,0.15); color: #22c55e; }
+.dedo-card-catalogo__badge--capturar { background: rgba(245,158,11,0.15); color: var(--ck-warn, #f59e0b); }
+
+.dedo-card-catalogo__en-cola {
+    font-size: 0.57rem;
+    color: var(--ck-warn, #f59e0b);
+    margin-top: 0.5rem;
+}
 
 .dedo-card-catalogo__acciones {
     display: flex;

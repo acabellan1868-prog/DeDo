@@ -95,6 +95,7 @@
                     <button class="dedo-btn" onclick="filtrarCatalogo('todos')"    id="cat-btn-todos"    class="activo">Todos</button>
                     <button class="dedo-btn" onclick="filtrarCatalogo('activo')"   id="cat-btn-activo">Activos</button>
                     <button class="dedo-btn dedo-btn--alerta" onclick="filtrarCatalogo('por_definir')" id="cat-btn-pendientes">Por definir</button>
+                    <button class="dedo-btn dedo-btn--alerta" onclick="filtrarCatalogo('por_capturar')" id="cat-btn-capturar">Por capturar</button>
                     <button class="dedo-btn dedo-btn--primario" onclick="mostrarFormCatalogo()">+ Añadir</button>
                 </div>
             </div>
@@ -113,6 +114,7 @@
                 <select id="cat-input-estado" class="dedo-select">
                     <option value="activo">Activo</option>
                     <option value="por_definir">Por definir</option>
+                    <option value="por_capturar">Por capturar</option>
                 </select>
                 <textarea id="cat-input-descripcion" placeholder="Descripción visual" class="dedo-input" style="flex-basis:100%; min-height:2.5rem; resize:vertical;"></textarea>
                 <button class="dedo-btn dedo-btn--primario" onclick="guardarProducto()">Guardar</button>

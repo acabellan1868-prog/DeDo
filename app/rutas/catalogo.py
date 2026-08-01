@@ -23,6 +23,15 @@ def listar_por_definir():
     )
 
 
+@ruta.get("/por-capturar", response_model=list[ProductoRespuesta])
+def listar_por_capturar():
+    """Devuelve productos marcados con estado 'por_capturar', pendientes de
+    que la IA rellene sus datos a partir del catálogo del supermercado."""
+    return bd.consultar_todos(
+        "SELECT * FROM catalogo WHERE estado = 'por_capturar' ORDER BY creado_en DESC"
+    )
+
+
 @ruta.get("/{producto_id}", response_model=ProductoRespuesta)
 def obtener_producto(producto_id: int):
     """Devuelve el detalle de un producto por su id."""

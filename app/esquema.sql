@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS catalogo (
     stock_minimo REAL DEFAULT 1,
     unidad TEXT DEFAULT 'unidad',
     caducidad_dias_defecto INTEGER,
-    estado TEXT DEFAULT 'activo' CHECK(estado IN ('activo', 'por_definir')),
+    estado TEXT DEFAULT 'activo' CHECK(estado IN ('activo', 'por_definir', 'por_capturar')),
     creado_en TEXT DEFAULT (datetime('now'))
 );
 
