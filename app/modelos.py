@@ -122,6 +122,7 @@ class CaducidadActualizar(BaseModel):
 
 class LineaTicketCrear(BaseModel):
     nombre_raw: str
+    producto_id: Optional[int] = None
     cantidad: Optional[float] = None
     precio_unitario: Optional[float] = None
     precio_total: Optional[float] = None

@@ -1,9 +1,10 @@
 """DeDo — Endpoints de procesado de tickets de compra.
 
-Flujo de POST /api/ticket:
+Flujo de POST /api/tickets:
   1. Guarda el ticket (supermercado, fecha, total)
-  2. Por cada línea: busca el producto en el catálogo (fuzzy match por nombre)
-     Si no existe, lo crea con estado='por_definir'
+  2. Por cada línea: usa el producto_id si viene informado (emparejado con
+     criterio real por quien construye el ticket); si no, cae al fuzzy
+     match por nombre. Si tampoco encuentra nada, lo crea como 'por_definir'
   3. Actualiza el stock (suma cantidad a la entrada existente o crea una nueva)
   4. Registra el precio en historial_precios
   5. Notifica el gasto total a FiDo (sin bloquear si falla)
@@ -18,6 +19,7 @@ from app import fido_client
 from app.modelos import (
     TicketRespuesta,
     TicketCrear,
+    LineaTicketCrear,
     LineaTicketRespuesta,
 )
 
@@ -26,6 +28,22 @@ ruta = APIRouter()
 
 
 # ── Helpers internos ──────────────────────────────────────────────────────────
+
+def _resolver_producto(linea: LineaTicketCrear) -> int:
+    """Resuelve el producto_id de una línea de ticket.
+
+    Si la línea ya trae producto_id (emparejado por quien construye el
+    ticket, con criterio real), se valida que exista y se usa tal cual,
+    sin pasar por el fuzzy-match. Si no viene informado, se cae al
+    fuzzy-match/creación por nombre de siempre.
+    """
+    if linea.producto_id is not None:
+        existe = bd.consultar_uno("SELECT id FROM catalogo WHERE id = ?", (linea.producto_id,))
+        if not existe:
+            raise HTTPException(404, f"producto_id {linea.producto_id} no existe en el catálogo")
+        return linea.producto_id
+    return _buscar_o_crear_producto(linea.nombre_raw)
+
 
 def _buscar_o_crear_producto(nombre_raw: str) -> int:
     """Busca el producto en el catálogo por nombre (fuzzy).
@@ -106,7 +124,7 @@ def procesar_ticket(datos: TicketCrear):
 
     # 2-4. Procesar cada línea
     for linea in datos.lineas:
-        producto_id = _buscar_o_crear_producto(linea.nombre_raw)
+        producto_id = _resolver_producto(linea)
 
         bd.ejecutar(
             """INSERT INTO lineas_ticket
