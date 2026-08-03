@@ -43,9 +43,19 @@ que estén en estado `por_capturar`, usando la API pública de Mercadona.
 - Actualizar producto:       PATCH http://192.168.31.131/despensa/api/catalogo/{id}
 
 ## API de Mercadona (pública, sin autenticación)
-- Árbol de categorías:       GET https://tienda.mercadona.es/api/categories/
-- Productos de subcategoría: GET https://tienda.mercadona.es/api/categories/{id}/
-- Detalle de producto:       GET https://tienda.mercadona.es/api/products/{id}/
+IMPORTANTE: añade siempre `?wh=svq1` (almacén de Sevilla, el que sirve al
+código postal 21001 del usuario) a estas tres llamadas. Sin este parámetro,
+la API usa un almacén genérico por defecto que NO tiene el surtido regional
+completo — productos de marcas que solo se venden en Andalucía (ej. García
+Millán) no aparecen sin `wh=svq1`, aunque el producto exista y el precio
+coincidiría perfectamente si se buscara con el almacén correcto.
+- Árbol de categorías:       GET https://tienda.mercadona.es/api/categories/?wh=svq1
+- Productos de subcategoría: GET https://tienda.mercadona.es/api/categories/{id}/?wh=svq1
+- Detalle de producto:       GET https://tienda.mercadona.es/api/products/{id}/?wh=svq1
+- Si tienes la URL del producto pero el endpoint de detalle da 404 (puede
+  pasar si `wh` sigue sin ser el correcto): usa el endpoint ligero, que no
+  depende de almacén, para al menos confirmar nombre/marca/foto:
+  GET https://tienda.mercadona.es/api/products/{id}/preview/?lang=es
 
 ## Proceso, por cada producto en por_capturar
 
@@ -111,9 +121,32 @@ que estén en estado `por_capturar`, usando la API pública de Mercadona.
 - Tiempo de captura sin ambigüedad: ~1-1.5 min por producto (caso limpio).
   El caso con empate de precio añade el tiempo de resolución manual, que no
   es automatizable sin una política de fallback (de ahí la regla dura).
+- **"Cero candidatos" puede significar almacén equivocado, no que el
+  producto no exista** (caso "Gazpacho fresco", 2026-08-03): sin `wh`, la
+  API no encontró ningún producto de la marca García Millán al precio del
+  ticket (1,55 €) en ninguna de las dos categorías candidatas. Parecía
+  confirmar la regla de "no adivinar" — pero era un falso negativo: el
+  usuario dio la URL directa del producto, y al repetir la consulta con
+  `wh=svq1` (almacén de Sevilla, resuelto probando el código postal 41001
+  en el flujo real de la web) apareció con el precio exacto (1,55 €,
+  0,33 L). La categoría no filtra por marca — ya incluía otras marcas de
+  terceros (ej. "Starlux") — el problema era puramente el almacén regional
+  usado por defecto. De ahí que ahora la instrucción fije `wh=svq1` en
+  todas las llamadas a Mercadona.
 
 ## Riesgos a validar antes de programarla
 
+- **`wh=svq1` no está verificado directamente para el CP 21001 del usuario**,
+  solo para el 41001 (Sevilla capital), donde se confirmó con un caso real
+  (precio exacto del gazpacho García Millán). 21001 es Huelva capital,
+  provincia vecina — es muy probable que comparta el mismo almacén regional,
+  pero no se ha podido confirmar de forma limpia por vía automática (los
+  intentos de forzar el cambio de código postal por API sin la sesión real
+  del navegador no funcionaron de forma fiable). Pendiente de una
+  verificación rápida y manual: entrar en tienda.mercadona.es, poner el CP
+  21001 en el flujo real de la web, y comprobar en las herramientas de red
+  del navegador qué valor de `wh` devuelve `/api/home/`. Si no es `svq1`,
+  corregir el valor en este prompt.
 - **Alcance de red desde el sandbox de Cowork**: en `FiDo/capturaGastosIA.md`
   hay un antecedente de que el shell no siempre estaba disponible de forma
   consistente en Cowork, y que `WebFetch` no llega a IPs locales. La versión
