@@ -1,5 +1,102 @@
 # Bitácora — DeDo
 
+## 2026-08-03 (continuación) — Campo EAN y rediseño del catálogo en lista
+
+### Contexto
+Continuación de la sesión anterior (mismo día). Dos frentes distintos:
+seguir afinando el modelo de datos del catálogo, y empezar el rediseño
+visual del portal pedido por el usuario, comenzando por la pestaña Catálogo.
+
+### Discusión: ¿el catálogo tiene precio? ¿depende del supermercado?
+El usuario preguntó si el catálogo guarda precios y si está atado a
+Mercadona. Aclarado:
+- El precio NO vive en `catalogo` — vive en `lineas_ticket` (por compra) e
+  `historial_precios` (histórico por producto+supermercado+fecha). El
+  catálogo es solo el "diccionario" del producto.
+- `supermercado_habitual` es un campo de texto libre, editable, rellenado
+  automáticamente con el supermercado del ticket que creó el producto — no
+  es una propiedad fija ni una relación estructural.
+- Punto débil real identificado por el usuario: sin un identificador único
+  de producto, comprar lo mismo en dos supermercados distintos crearía dos
+  entradas de catálogo duplicadas en vez de una con dos precios.
+
+### Añadido el campo EAN al catálogo
+El EAN lo asigna el fabricante (GS1), no el supermercado — identifica el
+producto físico independientemente de dónde se compre. Mercadona ya lo
+devuelve gratis en `GET /api/products/{id}/` (campo `ean`), sin llamada
+extra.
+
+- `esquema.sql`: columna `ean TEXT` en `catalogo`.
+- `bd.py`: migración `_migrar_columna_ean()` — `ALTER TABLE ADD COLUMN`
+  simple, sin reconstrucción de tabla (a diferencia de la migración de
+  `por_capturar`, esta no toca FKs).
+- `modelos.py` / `rutas/catalogo.py`: `ean` cableado en los tres modelos y
+  en el `INSERT` de creación.
+- `rutinas/prompt_capturar_producto.md`: actualizado para que la rutina de
+  Cowork guarde el `ean` cuando esté disponible (el endpoint `preview` de
+  fallback no lo trae — en ese caso se deja vacío, nunca se inventa).
+- Commit `148a0ba`. Verificado en producción tras `actualizar.sh`:
+  `GET /api/catalogo/11` pasó de no tener el campo a `"ean":null`.
+- Backfill manual del EAN real de los 4 productos ya capturados hasta
+  ahora (aceitunas `8402001047923`, chocolate `8480000125309`, almendra
+  `8480000340092`, gazpacho `8437004394385`), reaprovechando los IDs de
+  Mercadona ya localizados en sesiones anteriores.
+
+### Rediseño del catálogo: de cuadrícula de tarjetas a lista agrupada
+El usuario pidió que el catálogo se pareciera al listado de Tickets y que
+se agrupara "por empresa". Antes de tocar código real:
+
+- Diseño previo publicado como Artifact (mockup HTML autocontenido con
+  JetBrains Mono embebido y los 25 productos reales del catálogo) para
+  validar el concepto antes de implementarlo. Aprobado por el usuario
+  ("Me gusta") tras aclarar dos dudas (agrupar por `marca`, no por
+  supermercado — casi todo es Mercadona; "Sin marca" es la cola de
+  `por_definir`, por eso va al final).
+- Implementación real en `static/index.html` / `estilos.css` / `app.js`:
+  - Nuevas clases `dedo-catalogo-*` (lista, grupo, fila) que reutilizan el
+    badge de estado y los botones de acción ya existentes de la tarjeta
+    antigua — solo cambia el contenedor visual.
+  - Agrupación por `marca` (o "Sin marca" si no tiene), orden alfabético
+    con "Sin marca" siempre al final.
+  - Grupos con marca abren por defecto, "Sin marca" empieza plegado.
+  - Filtros (Todos/Activo/Por definir/Por capturar) ahora muestran el
+    conteo real en el propio botón.
+  - Fix de paso: el botón de filtro activo nunca se resaltaba con el color
+    de acento — el HTML tenía un `class="dedo-btn" ... class="activo"`
+    duplicado (atributo inválido, el navegador ignora el segundo) y
+    tampoco existía ninguna regla `.dedo-btn.activo` en el CSS. Corregido
+    ambos.
+- Probado en local antes de dar por bueno: sin Python/Node/PHP
+  disponibles, se montó un proxy local en PowerShell (`HttpListener`) que
+  sirve `static/` y reenvía `/api/*` a la API real de producción — permite
+  probar contra los 25 productos reales sin desplegar nada en la VM.
+  Verificado con el navegador automatizado: agrupación correcta (Hacendado
+  4, Coca-Cola 1, García Millán 1, Huesitos 1, Sin marca 18), plegado/
+  desplegado funcional, filtros funcionando con conteos correctos.
+- Nota de proceso: durante la verificación apareció una lectura de
+  `getComputedStyle` inconsistente para el color del botón activo. Tras
+  investigar a fondo, se confirmó que era un artefacto del propio entorno
+  de pruebas (el panel del navegador no compone frames al no estar visible
+  en pantalla, así que la transición CSS de 0.15s del botón queda
+  "congelada" a medio camino al leer el estilo por script) — no un bug
+  real del CSS. Forzando el fin de la transición, el color se resuelve
+  correctamente.
+- Commit `00426fb`.
+
+### Estado final de la sesión
+- Catálogo con `ean` en los 4 productos capturados hasta ahora.
+- Rediseño de la pestaña Catálogo completo y committeado, pendiente de
+  desplegar en la VM.
+
+### Próximo paso concreto
+1. 👤 Ejecutar `actualizar.sh` en la VM para desplegar el campo `ean` (si
+   no se hizo ya) y el rediseño del catálogo (commits `148a0ba`, `00426fb`)
+2. 👤 Verificar visualmente el catálogo agrupado en producción
+3. 👤/🤖 Seguir con el rediseño del resto de pestañas del portal (Despensa,
+   Lista, Caducidades, Tickets) si se quiere aplicar el mismo criterio
+
+---
+
 ## 2026-08-03 — Rutina de Cowork: falso negativo por almacén regional, fix wh=svq1 y verificación
 
 ### Contexto

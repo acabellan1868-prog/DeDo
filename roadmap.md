@@ -1,13 +1,14 @@
 # DeDo — Hoja de ruta
 
-> Estado actual: Fases 0-3 completadas. Fase 4 (integración hogarOS) casi completa, solo falta la tarjeta resumen en el bento grid. Catálogo con CRUD completo y estado `por_capturar` para encolar enriquecimiento. Pestaña Tickets funcional (commit `6f8adf8`), pendiente de desplegar. **Rutina de Cowork para capturar productos `por_capturar` creada y validada con una primera ejecución manual real** (`rutinas/prompt_capturar_producto.md`): usa la API pública de Mercadona, desambigua por precio del ticket, y fija `wh=svq1` (almacén regional del usuario, verificado) tras descubrir que el almacén por defecto de la API no cubre marcas regionales (caso "Gazpacho fresco García Millán"). Regla dura de "no adivinar" ante empates de precio o falta de candidatos. Sigue en fase de pruebas manuales, sin temporización todavía. Detalle línea a línea en `bitacora.md`, entradas "2026-08-02" y "2026-08-03".
+> Estado actual: Fases 0-3 completadas. Fase 4 (integración hogarOS) casi completa, solo falta la tarjeta resumen en el bento grid. Catálogo con CRUD completo, estado `por_capturar` para encolar enriquecimiento, y campo `ean` (identificador de producto independiente del supermercado — commit `148a0ba`). Pestaña Tickets funcional (commit `6f8adf8`), pendiente de desplegar. **Rutina de Cowork para capturar productos `por_capturar`** (`rutinas/prompt_capturar_producto.md`) creada y validada con una ejecución manual real: usa la API pública de Mercadona, desambigua por precio del ticket, fija `wh=svq1` (almacén regional del usuario, verificado) y ahora también guarda el `ean`. Sigue en pruebas manuales, sin temporización. **Rediseño del portal en marcha**: la pestaña Catálogo pasó de cuadrícula de tarjetas a lista plegable agrupada por marca (commit `00426fb`), validado primero con un mockup en Artifact y luego probado en local contra la API real antes de desplegar. Detalle línea a línea en `bitacora.md`, entradas "2026-08-02" y "2026-08-03" (dos entradas ese día).
 > Última actualización: 2026-08-03
 > **Próximo paso concreto:**
-> 1. 👤 Marcar más productos como `por_capturar` y seguir ejecutando la rutina de Cowork manualmente para validar el patrón antes de programarla
-> 2. 👤 Ejecutar `actualizar.sh` en la VM para desplegar la pestaña Tickets (commit `6f8adf8`)
-> 3. 👤 Verificar visualmente el ticket #5 en la pestaña Tickets (25 líneas correctas al expandir)
+> 1. 👤 Ejecutar `actualizar.sh` en la VM para desplegar el campo `ean` y el rediseño del catálogo (commits `148a0ba`, `00426fb`) y la pestaña Tickets (commit `6f8adf8`)
+> 2. 👤 Verificar visualmente en producción: catálogo agrupado por marca, y ticket #5 en la pestaña Tickets (25 líneas correctas al expandir)
+> 3. 👤 Marcar más productos como `por_capturar` y seguir ejecutando la rutina de Cowork manualmente para validar el patrón antes de programarla
 > 4. 👤 Decidir qué hacer con los productos `por_definir`/`por_capturar` restantes del ticket #5
-> 5. 🤖/👤 Diseñar la tarea programada de Cowork para automatizar la lectura de tickets desde `Drive/DeDo/Tickets/` (sin empezar, es una automatización distinta a la de captura de productos)
+> 5. 🤖/👤 Seguir con el rediseño del resto de pestañas del portal (Despensa, Lista, Caducidades, Tickets) si se quiere aplicar el mismo criterio
+> 6. 🤖/👤 Diseñar la tarea programada de Cowork para automatizar la lectura de tickets desde `Drive/DeDo/Tickets/` (sin empezar, es una automatización distinta a la de captura de productos)
 
 ### Leyenda
 
