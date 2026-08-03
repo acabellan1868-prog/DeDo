@@ -1,5 +1,158 @@
 # Bitácora — DeDo
 
+## 2026-08-03 — Rutina de Cowork: falso negativo por almacén regional, fix wh=svq1 y verificación
+
+### Contexto
+Primera ejecución real de la rutina de Cowork `rutinas/prompt_capturar_producto.md`
+(creada el día anterior), montada por el usuario como rutina local sin
+temporización, para capturar productos en estado `por_capturar`.
+
+### Creación de la rutina en Cowork: botón "Crear" desactivado
+Al montar la rutina en la interfaz de Cowork, el botón "Crear" permanecía
+desactivado. Causa: el campo "Seleccionar carpeta" (obligatorio en una rutina
+local, para saber en qué directorio ejecutarse) estaba vacío. Solucionado
+seleccionando la carpeta del repo (`Desarrollo/Claude/DeDo`) y dejando
+"Worktree" sin marcar, ya que la rutina solo hace llamadas HTTP y no necesita
+una copia aislada del código.
+
+### Primer caso real: "Gazpacho fresco" (id 11) — falso negativo
+La rutina procesó el producto #11 (ticket 5, línea 11, precio real 1,55 €):
+buscó en la categoría "Gazpacho y cremas" de Mercadona, encontró candidatos
+Hacendado a 2,65 € y 1,10 €, ninguno coincidía con 1,55 € → aplicó
+correctamente la regla de "no adivinar" y dejó el producto sin tocar.
+
+Verificación manual (no solo confiar en el informe de la rutina): se revisó
+toda la categoría (20 productos) y ninguno costaba 1,55 € — parecía confirmar
+que no había coincidencia real, no solo un fallo de búsqueda.
+
+### La corrección del usuario destapa el problema de fondo
+El usuario indicó que el producto real no es de Hacendado sino de **García
+Millán**, y aportó la URL directa (`tienda.mercadona.es/product/39968/...`).
+Esto reveló que el diagnóstico de "no existe" era un **falso negativo**:
+
+- La API pública de Mercadona **regionaliza el catálogo por almacén** (`wh`),
+  asociado al código postal del usuario. Sin `wh` explícito, la API usa un
+  almacén genérico que no tiene el surtido de marcas regionales (García
+  Millán es una marca de gazpacho "Receta Andaluza").
+- El endpoint completo (`/api/products/{id}/`) daba 404 para ese producto sin
+  el almacén correcto, pero el endpoint ligero de previsualización
+  (`/api/products/{id}/preview/?lang=es`) sí funcionó independientemente del
+  almacén — de ahí se pudo sacar al menos la foto para la descripción visual.
+- Navegando la web real de Mercadona e introduciendo el CP 41001 (Sevilla,
+  por la pista "Receta Andaluza" de la etiqueta) se resolvió `wh=svq1`. Al
+  repetir la consulta de categoría con ese parámetro, "Gazpacho fresco García
+  Millán" apareció con precio exacto: **1,55 €, 0,33 L** — coincidencia
+  perfecta con el ticket.
+- Importante: la categoría **no filtra por marca** — ya incluía otras marcas
+  de terceros como "Starlux" en la misma lista. El problema era puramente el
+  almacén regional por defecto, no una limitación de cobertura de marcas.
+
+Producto #11 actualizado vía `PATCH`: marca "García Millán", zona
+`frigorifico`, `caducidad_dias_defecto: 20` (estimación, dato real no
+disponible), descripción visual a partir de la foto de la ficha web, estado
+`activo`.
+
+### Fix aplicado al prompt de la rutina
+`rutinas/prompt_capturar_producto.md` actualizado para fijar `?wh=svq1` en
+las tres llamadas a la API de Mercadona (árbol de categorías, productos de
+categoría, detalle de producto), con nota explicando el motivo y con el
+endpoint `preview` documentado como vía alternativa si el detalle completo
+sigue dando 404. Documentado también el caso del gazpacho en la sección de
+aprendizajes, para que la rutina no reporte "no existe" como si fuera
+definitivo cuando puede ser solo almacén equivocado.
+
+### Verificación del almacén para el código postal real del usuario
+`wh=svq1` se había confirmado solo para el CP de prueba 41001 (Sevilla
+capital), no para el CP real del usuario. Los intentos de forzar el cambio de
+código postal por API sin la sesión real del navegador no dieron resultados
+fiables (endpoint `PUT /api/postal-codes/actions/change-pc/` devolvía
+`warehouse_changed: false` incluso para códigos postales que deberían haber
+cambiado el almacén). El usuario verificó directamente en su propio navegador
+la cookie `__mo_da` de tienda.mercadona.es: `{"warehouse":"svq1",
+"postalCode":"21100"}` — confirma que `svq1` es también el almacén correcto
+para su zona real (Huelva provincia).
+
+### Estado final de la sesión
+- Rutina de Cowork creada, con el fix de almacén aplicado y verificado contra
+  el código postal real del usuario.
+- Producto #11 (Gazpacho fresco García Millán) capturado y activo.
+- El usuario confirma que, tras estos cambios, la ejecución manual de la
+  rutina "funciona" — seguirá probando manualmente con más productos antes de
+  añadir temporización/programación.
+- Commits en el repo DeDo: `747163c`, `9ebcad4`, `d0fbe8e`, `e8fc630`.
+
+### Próximo paso concreto
+1. 👤 Marcar más productos como `por_capturar` y seguir ejecutando la rutina
+   manualmente para validar el patrón con más casos (especialmente si
+   aparece otro empate de precio o otro almacén regional).
+2. 👤/🤖 Cuando haya confianza suficiente tras varias ejecuciones limpias,
+   decidir frecuencia y activar la temporización de la rutina en Cowork.
+
+---
+
+## 2026-08-02 — Captura manual de 3 productos por_capturar y prompt inicial de Cowork
+
+### Contexto
+Antes de diseñar la automatización de Cowork, se decidió capturar a mano unos
+cuantos productos en estado `por_capturar` para aprender el proceso real y
+afinarlo, en vez de adivinar el diseño de la rutina de antemano.
+
+### Método usado
+1. Listar pendientes: `GET /despensa/api/catalogo/por-capturar`.
+2. Para cada producto, localizar la categoría de Mercadona más probable
+   navegando el árbol `GET /api/categories/` (no existe búsqueda por texto
+   libre útil en la API pública).
+3. **El precio real del ticket es el desambiguador principal**: cuando varios
+   productos de Mercadona comparten nombre pero difieren en formato/precio,
+   se cruza contra `price_instructions.unit_price` de cada candidato.
+4. Descargar la foto del candidato confirmado a un directorio temporal de la
+   sesión (nunca persistente) y redactar `descripcion_visual` a mano,
+   siguiendo el criterio de `DeDo - analisis.md` sección 7b.
+5. Asignar `zona` y `caducidad_dias_defecto` con criterio propio (no vienen
+   de la API de Mercadona).
+6. `PATCH /api/catalogo/{id}` con los datos y `estado: "activo"`.
+
+### Productos capturados
+- **#15 — Aceitunas rellenas de anchoa pack-3**: 4 productos de Mercadona con
+  el mismo nombre y distinto formato; solo uno coincidía exacto con el precio
+  del ticket (1,80 €) → Hacendado, zona alacena, caducidad 730 días.
+- **#2 — Chocolate para fundir sin azúcar 70%**: un único candidato, precio
+  exacto (3,25 €) → Hacendado, zona alacena, caducidad 365 días (estimación).
+- **#6 — Almendra frita**: **empate de precio** entre dos productos distintos
+  a 2,95 € (bolsa "pelada" 200g vs "marcona" 125g) — no hay forma de resolver
+  solo con datos. Se preguntó al usuario, confirmó la "pelada" 200g. De aquí
+  nace la regla dura de "no adivinar ante empates" para la rutina automática,
+  ya que una tarea programada no puede parar a preguntar.
+
+### Tiempos medidos
+- Caso limpio (chocolate): ~1 min 24 s.
+- Caso con empate (almendra): ~2 min 04 s de reloj total, pero incluye la
+  espera de la respuesta del usuario — no comparable a una ejecución
+  desatendida.
+
+### Prompt inicial de Cowork
+Creado `rutinas/prompt_capturar_producto.md`: nombre, descripción, frecuencia
+recomendada (manual/bajo demanda hasta validar más casos), instrucciones
+completas del proceso, reglas duras (no inventar datos sin candidato
+confirmado por precio, no cambiar a `activo` sin verificación, no dejar
+ficheros temporales) y sección de aprendizajes/riesgos a validar.
+
+### Estado final de la sesión
+- 3 productos `por_capturar` capturados y activos (#15, #2, #6).
+- Prompt de la rutina documentado y subido al repo, listo para probarse
+  dentro de Cowork.
+
+### Commits de esta sesión
+- `747163c` — prompt inicial de la rutina de Cowork
+- `9ebcad4` — descripción corta de la tarea (para el formulario de Cowork)
+
+### Próximo paso concreto
+1. 👤 Crear la rutina en la interfaz de Cowork con el contenido del prompt.
+2. 👤 Marcar algún producto más como `por_capturar` y ejecutar la rutina
+   manualmente para ver qué pasa.
+
+---
+
 ## 2026-08-01 (continuación) — Incidente de datos, fix de claves foráneas, ticket real procesado con éxito y pestaña Tickets
 
 ### Contexto
