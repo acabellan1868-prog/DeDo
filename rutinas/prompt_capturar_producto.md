@@ -136,17 +136,10 @@ coincidiría perfectamente si se buscara con el almacén correcto.
 
 ## Riesgos a validar antes de programarla
 
-- **`wh=svq1` no está verificado directamente para el CP 21001 del usuario**,
-  solo para el 41001 (Sevilla capital), donde se confirmó con un caso real
-  (precio exacto del gazpacho García Millán). 21001 es Huelva capital,
-  provincia vecina — es muy probable que comparta el mismo almacén regional,
-  pero no se ha podido confirmar de forma limpia por vía automática (los
-  intentos de forzar el cambio de código postal por API sin la sesión real
-  del navegador no funcionaron de forma fiable). Pendiente de una
-  verificación rápida y manual: entrar en tienda.mercadona.es, poner el CP
-  21001 en el flujo real de la web, y comprobar en las herramientas de red
-  del navegador qué valor de `wh` devuelve `/api/home/`. Si no es `svq1`,
-  corregir el valor en este prompt.
+- ~~`wh=svq1` no está verificado directamente para el CP del usuario~~ —
+  **verificado el 2026-08-03**: el usuario comprobó la cookie `__mo_da` de
+  su propia sesión en tienda.mercadona.es y confirma `{"warehouse":"svq1",
+  "postalCode":"21100"}` (Huelva provincia). `svq1` es el almacén correcto.
 - **Alcance de red desde el sandbox de Cowork**: en `FiDo/capturaGastosIA.md`
   hay un antecedente de que el shell no siempre estaba disponible de forma
   consistente en Cowork, y que `WebFetch` no llega a IPs locales. La versión
