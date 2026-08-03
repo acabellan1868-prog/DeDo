@@ -188,6 +188,7 @@ async function vaciarLista() {
 ══════════════════════════════════════════ */
 let _catalogoFiltro = 'todos';
 let _catalogoItems  = [];
+let _catalogoGruposAbiertos = {};
 
 async function cargarCatalogo() {
     const contenedor = document.getElementById('catalogo-lista');
@@ -202,19 +203,74 @@ async function cargarCatalogo() {
 
 function filtrarCatalogo(f) {
     _catalogoFiltro = f;
+    document.querySelectorAll('#sec-catalogo .dedo-toolbar-acciones .dedo-btn[id^="cat-btn-"]')
+        .forEach(b => b.classList.remove('activo'));
+    const idBoton = { todos: 'cat-btn-todos', activo: 'cat-btn-activo', por_definir: 'cat-btn-pendientes', por_capturar: 'cat-btn-capturar' }[f];
+    if (idBoton) document.getElementById(idBoton).classList.add('activo');
     renderCatalogo();
 }
 
 function renderCatalogo() {
     const contenedor = document.getElementById('catalogo-lista');
-    const filtrado = _catalogoFiltro === 'todos'      ? _catalogoItems
-        : _catalogoFiltro === 'activo'    ? _catalogoItems.filter(i => i.estado === 'activo')
+    const nota = document.getElementById('catalogo-nota');
+
+    const conteos = { todos: _catalogoItems.length, activo: 0, por_definir: 0, por_capturar: 0 };
+    _catalogoItems.forEach(i => { if (conteos[i.estado] !== undefined) conteos[i.estado]++; });
+    document.getElementById('cat-btn-todos').textContent      = `Todos (${conteos.todos})`;
+    document.getElementById('cat-btn-activo').textContent     = `Activos (${conteos.activo})`;
+    document.getElementById('cat-btn-pendientes').textContent = `Por definir (${conteos.por_definir})`;
+    document.getElementById('cat-btn-capturar').textContent   = `Por capturar (${conteos.por_capturar})`;
+
+    const filtrado = _catalogoFiltro === 'todos' ? _catalogoItems
         : _catalogoItems.filter(i => i.estado === _catalogoFiltro);
+
     if (!filtrado.length) {
+        nota.textContent = '';
         contenedor.innerHTML = '<div class="dedo-cargando">Sin resultados.</div>';
         return;
     }
-    contenedor.innerHTML = filtrado.map(renderCardCatalogo).join('');
+
+    // Agrupar por marca — "Sin marca" siempre al final.
+    const grupos = {};
+    const orden = [];
+    filtrado.forEach(item => {
+        const marca = item.marca || 'Sin marca';
+        if (!grupos[marca]) { grupos[marca] = []; orden.push(marca); }
+        grupos[marca].push(item);
+    });
+    orden.sort((a, b) => {
+        if (a === 'Sin marca') return 1;
+        if (b === 'Sin marca') return -1;
+        return a.localeCompare(b, 'es');
+    });
+
+    nota.textContent = `Agrupado por marca · ${filtrado.length} producto${filtrado.length === 1 ? '' : 's'} en ${orden.length} grupo${orden.length === 1 ? '' : 's'}`;
+    contenedor.innerHTML = orden.map(marca => renderGrupoCatalogo(marca, grupos[marca])).join('');
+}
+
+function renderGrupoCatalogo(marca, items) {
+    // Por defecto, los grupos con marca real empiezan abiertos y "Sin marca"
+    // (la cola de por_definir) empieza plegado — el usuario puede cambiarlo
+    // libremente y se recuerda mientras no se recargue la página.
+    if (!(marca in _catalogoGruposAbiertos)) {
+        _catalogoGruposAbiertos[marca] = marca !== 'Sin marca';
+    }
+    const abierto = _catalogoGruposAbiertos[marca];
+    const claseMarca = marca === 'Sin marca' ? 'dedo-catalogo-grupo__marca--sinmarca' : '';
+    return `
+    <div class="dedo-catalogo-grupo${abierto ? ' abierto' : ''}" data-marca="${esc(marca)}">
+        <div class="dedo-catalogo-grupo__cab" onclick="toggleGrupoCatalogo('${esc(marca).replace(/'/g, "\\'")}')">
+            <span class="dedo-catalogo-grupo__chevron">▶</span>
+            <span class="dedo-catalogo-grupo__marca ${claseMarca}">${esc(marca)}</span>
+            <span class="dedo-catalogo-grupo__count">${items.length}</span>
+        </div>
+        <div class="dedo-catalogo-grupo__filas">${items.map(renderFilaCatalogo).join('')}</div>
+    </div>`;
+}
+
+function toggleGrupoCatalogo(marca) {
+    _catalogoGruposAbiertos[marca] = !_catalogoGruposAbiertos[marca];
+    renderCatalogo();
 }
 
 const ETIQUETAS_ESTADO = {
@@ -223,19 +279,21 @@ const ETIQUETAS_ESTADO = {
     por_capturar: { texto: 'Por capturar', clase: 'dedo-card-catalogo__badge--capturar' },
 };
 
-function renderCardCatalogo(item) {
+function renderFilaCatalogo(item) {
     const etiqueta = ETIQUETAS_ESTADO[item.estado] || ETIQUETAS_ESTADO.por_definir;
     const badge = `<span class="dedo-card-catalogo__badge ${etiqueta.clase}">${etiqueta.texto}</span>`;
-    const meta = [item.categoria, item.marca].filter(Boolean).join(' · ');
+    const meta = [item.categoria, item.zona].filter(Boolean).join(' · ');
     const accionCaptura = item.estado === 'por_definir'
-        ? `<button class="dedo-btn dedo-btn--alerta" onclick="marcarParaCaptura(${item.id})">Capturar producto</button>`
+        ? `<button class="dedo-btn dedo-btn--alerta" onclick="event.stopPropagation(); marcarParaCaptura(${item.id})">Capturar producto</button>`
         : item.estado === 'por_capturar'
-            ? '<div class="dedo-card-catalogo__en-cola">⏳ En cola de captura</div>'
+            ? '<span class="dedo-card-catalogo__en-cola">⏳ En cola</span>'
             : '';
     return `
-    <div class="dedo-card-catalogo">
-        <div class="dedo-card-catalogo__nombre">${esc(item.nombre)}</div>
-        ${meta ? `<div class="dedo-card-catalogo__meta">${esc(meta)}</div>` : ''}
+    <div class="dedo-catalogo-fila">
+        <div class="dedo-catalogo-fila__info">
+            <div class="dedo-catalogo-fila__nombre">${esc(item.nombre)}</div>
+            ${meta ? `<div class="dedo-catalogo-fila__meta">${esc(meta)}</div>` : ''}
+        </div>
         ${badge}
         ${accionCaptura}
         <div class="dedo-card-catalogo__acciones">

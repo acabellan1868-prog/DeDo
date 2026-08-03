@@ -84,6 +84,7 @@ body {
     transition: background 0.15s, color 0.15s;
 }
 .dedo-btn:hover { background: rgba(128,128,128,0.15); color: var(--ck-on-surface); }
+.dedo-btn.activo { color: var(--ck-accent); border-color: var(--ck-accent); }
 .dedo-btn--primario { background: var(--ck-accent); border-color: var(--ck-accent); color: #fff; }
 .dedo-btn--primario:hover { opacity: 0.85; }
 .dedo-btn--peligro { border-color: var(--ck-danger, #ef4444); color: var(--ck-danger, #ef4444); }
@@ -219,30 +220,106 @@ body {
 }
 .dedo-item-lista__del:hover { color: var(--ck-error, #ef4444); background: rgba(239,68,68,0.1); }
 
-/* ── Grid catálogo ── */
-.dedo-grid-catalogo {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+/* ── Catálogo: nota bajo el título ── */
+.dedo-catalogo-nota {
+    font-size: 0.56rem;
+    color: var(--ck-on-variant);
+    margin: 0.25rem 0 0;
+}
+
+/* ── Catálogo: lista agrupada por marca ── */
+.dedo-catalogo-lista {
+    display: flex;
+    flex-direction: column;
     gap: 0.6rem;
 }
-.dedo-card-catalogo {
+.dedo-catalogo-grupo {
     background: var(--ck-bg2);
     border: 1px solid var(--ck-line);
     border-radius: 4px;
-    padding: 0.6rem 0.75rem;
+    overflow: hidden;
 }
-.dedo-card-catalogo__nombre {
+.dedo-catalogo-grupo__cab {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.55rem 0.75rem;
+    cursor: pointer;
+    user-select: none;
+}
+.dedo-catalogo-grupo__cab:hover { background: rgba(128,128,128,0.15); }
+.dedo-catalogo-grupo__chevron {
+    color: var(--ck-on-variant);
+    font-size: 0.6rem;
+    transition: transform 0.15s ease;
+    flex-shrink: 0;
+    width: 0.8rem;
+}
+.dedo-catalogo-grupo.abierto .dedo-catalogo-grupo__chevron {
+    transform: rotate(90deg);
+    color: var(--ck-accent);
+}
+.dedo-catalogo-grupo__marca {
     font-size: 0.63rem;
     font-weight: 700;
-    text-transform: uppercase;
     letter-spacing: 0.06em;
+    text-transform: uppercase;
     color: var(--ck-on-surface);
-    margin-bottom: 0.25rem;
+    flex: 1;
 }
-.dedo-card-catalogo__meta {
-    font-size: 0.57rem;
+.dedo-catalogo-grupo__marca--sinmarca { color: var(--ck-on-variant); }
+.dedo-catalogo-grupo__count {
+    font-size: 0.53rem;
     color: var(--ck-on-variant);
+    font-variant-numeric: tabular-nums;
+    background: var(--ck-bg3);
+    padding: 0.1rem 0.4rem;
+    border-radius: 8px;
 }
+.dedo-catalogo-grupo__filas {
+    border-top: 1px solid var(--ck-line);
+    display: flex;
+    flex-direction: column;
+}
+.dedo-catalogo-grupo:not(.abierto) .dedo-catalogo-grupo__filas { display: none; }
+
+.dedo-catalogo-fila {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.5rem 0.75rem;
+    border-bottom: 1px solid var(--ck-line);
+}
+.dedo-catalogo-fila:last-child { border-bottom: none; }
+.dedo-catalogo-fila:hover { background: rgba(128,128,128,0.08); }
+.dedo-catalogo-fila__info { flex: 1; min-width: 0; }
+.dedo-catalogo-fila__nombre {
+    font-size: 0.63rem;
+    font-weight: 700;
+    color: var(--ck-on-surface);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.dedo-catalogo-fila__meta {
+    font-size: 0.55rem;
+    color: var(--ck-on-variant);
+    margin-top: 0.1rem;
+}
+
+/* Reutiliza badge/en-cola/acciones/botón de la tarjeta antigua, pero en fila
+   (no en columna) — anula los márgenes verticales pensados para apilarse. */
+.dedo-catalogo-fila .dedo-card-catalogo__badge,
+.dedo-catalogo-fila .dedo-card-catalogo__en-cola,
+.dedo-catalogo-fila .dedo-card-catalogo__acciones {
+    margin-top: 0;
+    flex-shrink: 0;
+}
+.dedo-catalogo-fila .dedo-btn {
+    flex-shrink: 0;
+    white-space: nowrap;
+}
+
 .dedo-card-catalogo__badge {
     display: inline-block;
     font-size: 0.52rem;

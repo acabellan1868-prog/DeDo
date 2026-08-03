@@ -90,9 +90,12 @@
         <!-- ── PESTAÑA: CATÁLOGO ── -->
         <section id="sec-catalogo" class="dedo-seccion dedo-seccion--oculta">
             <div class="dedo-toolbar">
-                <h2 class="dedo-titulo">Catálogo de productos</h2>
+                <div>
+                    <h2 class="dedo-titulo">Catálogo de productos</h2>
+                    <p class="dedo-catalogo-nota" id="catalogo-nota"></p>
+                </div>
                 <div class="dedo-toolbar-acciones">
-                    <button class="dedo-btn" onclick="filtrarCatalogo('todos')"    id="cat-btn-todos"    class="activo">Todos</button>
+                    <button class="dedo-btn activo" onclick="filtrarCatalogo('todos')" id="cat-btn-todos">Todos</button>
                     <button class="dedo-btn" onclick="filtrarCatalogo('activo')"   id="cat-btn-activo">Activos</button>
                     <button class="dedo-btn dedo-btn--alerta" onclick="filtrarCatalogo('por_definir')" id="cat-btn-pendientes">Por definir</button>
                     <button class="dedo-btn dedo-btn--alerta" onclick="filtrarCatalogo('por_capturar')" id="cat-btn-capturar">Por capturar</button>
@@ -121,7 +124,7 @@
                 <button class="dedo-btn" onclick="ocultarFormCatalogo()">Cancelar</button>
             </div>
 
-            <div id="catalogo-lista" class="dedo-grid-catalogo">
+            <div id="catalogo-lista" class="dedo-catalogo-lista">
                 <div class="dedo-cargando">Cargando catálogo…</div>
             </div>
         </section>
