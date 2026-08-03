@@ -12,6 +12,7 @@ class ProductoRespuesta(BaseModel):
     id: int
     nombre: str
     marca: Optional[str] = None
+    ean: Optional[str] = None
     categoria: Optional[str] = None
     descripcion_visual: Optional[str] = None
     zona: Optional[str] = None
@@ -26,6 +27,7 @@ class ProductoRespuesta(BaseModel):
 class ProductoCrear(BaseModel):
     nombre: str
     marca: Optional[str] = None
+    ean: Optional[str] = None
     categoria: Optional[str] = None
     descripcion_visual: Optional[str] = None
     zona: Optional[str] = None
@@ -39,6 +41,7 @@ class ProductoCrear(BaseModel):
 class ProductoActualizar(BaseModel):
     nombre: Optional[str] = None
     marca: Optional[str] = None
+    ean: Optional[str] = None
     categoria: Optional[str] = None
     descripcion_visual: Optional[str] = None
     zona: Optional[str] = None

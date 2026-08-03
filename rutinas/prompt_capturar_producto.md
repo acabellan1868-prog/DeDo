@@ -19,11 +19,11 @@
 DeDo — Capturar productos (por_capturar → activo)
 
 ## Descripción de la tarea
-Enriquece con datos reales (marca, descripción visual, zona, caducidad) los
-productos del catálogo de DeDo marcados como `por_capturar`, cruzando la API
-pública de Mercadona con el precio del ticket original. Si hay ambigüedad
-(precio empatado o sin coincidencia), no adivina: deja el producto pendiente
-para revisión manual.
+Enriquece con datos reales (marca, EAN, descripción visual, zona, caducidad)
+los productos del catálogo de DeDo marcados como `por_capturar`, cruzando la
+API pública de Mercadona con el precio del ticket original. Si hay
+ambigüedad (precio empatado o sin coincidencia), no adivina: deja el
+producto pendiente para revisión manual.
 
 ## Frecuencia recomendada (v1)
 Bajo demanda / manual. Pasar a programada solo tras validar varias
@@ -74,6 +74,12 @@ coincidiría perfectamente si se buscara con el almacén correcto.
      final como "pendiente de revisión manual", explicando el motivo exacto
      (sin coincidencias / empate entre N candidatos, con sus nombres y precios).
 5. Con el candidato confirmado:
+   - Toma el campo `ean` de la respuesta del detalle de producto (viene
+     gratis en la misma llamada, no hace falta una petición aparte). Es el
+     código de barras GS1, asignado por el fabricante — identifica el
+     producto físico independientemente del supermercado. Si solo pudiste
+     confirmar el producto vía el endpoint `preview` (sin `wh` correcto),
+     ese endpoint NO trae `ean` — dejarlo vacío en ese caso, nunca inventarlo.
    - Descarga la foto (`photos[0].regular`) a un directorio TEMPORAL de la
      sesión — nunca a una carpeta persistente del repo ni de DeDo.
    - Redacta `descripcion_visual` a partir de la foto, siguiendo el criterio
@@ -86,7 +92,7 @@ coincidiría perfectamente si se buscara con el almacén correcto.
      de `DeDo - analisis.md` sección 10 si el producto encaja en alguna
      categoría (conservas → 730, congelados → 90, etc.) o con una estimación
      razonable si no encaja.
-   - Aplica `PATCH /api/catalogo/{id}` con: `marca`, `descripcion_visual`,
+   - Aplica `PATCH /api/catalogo/{id}` con: `marca`, `ean`, `descripcion_visual`,
      `zona`, `caducidad_dias_defecto`, `estado: "activo"`.
 6. Borra cualquier fichero temporal (imágenes descargadas) antes de terminar.
 
@@ -133,6 +139,17 @@ coincidiría perfectamente si se buscara con el almacén correcto.
   terceros (ej. "Starlux") — el problema era puramente el almacén regional
   usado por defecto. De ahí que ahora la instrucción fije `wh=svq1` en
   todas las llamadas a Mercadona.
+- **El catálogo debe ser independiente del supermercado** (discusión
+  2026-08-03): `supermercado_habitual` es solo "dónde lo compraste" (texto
+  libre, editable), no una propiedad fija del producto — el producto en sí
+  (nombre, marca...) no está atado a ningún supermercado. El punto débil
+  real era la falta de un identificador universal: si algún día se compra
+  el mismo producto en otro supermercado, DeDo no tenía forma de saber que
+  es "el mismo" sin comparar por nombre. Se añadió la columna `ean` a
+  `catalogo` para esto — el EAN lo asigna el fabricante (GS1), es el mismo
+  código en cualquier tienda, y Mercadona ya lo devuelve gratis en
+  `GET /api/products/{id}/` (campo `ean`, ej. `"8437004394385"` para el
+  gazpacho García Millán) sin necesidad de ninguna llamada extra.
 
 ## Riesgos a validar antes de programarla
 

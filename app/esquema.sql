@@ -4,6 +4,7 @@ CREATE TABLE IF NOT EXISTS catalogo (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     nombre TEXT NOT NULL,
     marca TEXT,
+    ean TEXT,
     categoria TEXT,
     descripcion_visual TEXT,
     zona TEXT,

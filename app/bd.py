@@ -42,6 +42,27 @@ def inicializar_bd():
     conn.close()
     _migrar_estado_por_capturar()
     _reparar_fk_catalogo()
+    _migrar_columna_ean()
+
+
+def _migrar_columna_ean():
+    """Añade la columna 'ean' a catalogo si falta.
+
+    El EAN (código de barras) lo asigna el fabricante vía GS1, no el
+    supermercado — identifica el producto físico independientemente de
+    dónde se compre. A diferencia de la migración de 'por_capturar', esta
+    es un simple ALTER TABLE ADD COLUMN: no hace falta reconstruir la tabla
+    porque SQLite sí permite añadir una columna nullable sin tocar el CHECK
+    ni las claves foráneas de las tablas que apuntan a catalogo.
+    """
+    conn = _conexion_para_migracion()
+    try:
+        columnas = conn.execute("PRAGMA table_info(catalogo)").fetchall()
+        if any(col["name"] == "ean" for col in columnas):
+            return
+        conn.execute("ALTER TABLE catalogo ADD COLUMN ean TEXT")
+    finally:
+        conn.close()
 
 
 def _migrar_estado_por_capturar():
