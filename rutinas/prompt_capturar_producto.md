@@ -18,6 +18,13 @@
 ## Nombre de la tarea
 DeDo — Capturar productos (por_capturar → activo)
 
+## Descripción de la tarea
+Enriquece con datos reales (marca, descripción visual, zona, caducidad) los
+productos del catálogo de DeDo marcados como `por_capturar`, cruzando la API
+pública de Mercadona con el precio del ticket original. Si hay ambigüedad
+(precio empatado o sin coincidencia), no adivina: deja el producto pendiente
+para revisión manual.
+
 ## Frecuencia recomendada (v1)
 Bajo demanda / manual. Pasar a programada solo tras validar varias
 ejecuciones correctas y que la regla de "no adivinar" (ver más abajo) se
