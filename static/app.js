@@ -157,14 +157,30 @@ function renderFilaStock(item) {
     const vacio = item.cantidad <= 0;
     const cls   = vacio ? 'vacio' : bajo ? 'bajo' : 'ok';
     return `
-    <div class="dedo-despensa-fila">
+    <div class="dedo-despensa-fila" id="stock-fila-${item.id}">
         <div class="dedo-despensa-fila__indicador dedo-despensa-fila__indicador--${cls}"></div>
         <div class="dedo-despensa-fila__info">
             <div class="dedo-despensa-fila__nombre">${esc(item.nombre_producto)}</div>
             ${item.categoria ? `<div class="dedo-despensa-fila__meta">${esc(item.categoria)}</div>` : ''}
         </div>
         <div class="dedo-despensa-fila__cantidad">${item.cantidad} ${esc(item.unidad || '')}</div>
+        <button class="dedo-despensa-fila__quitar" onclick="quitarUnidadStock(${item.id}, ${item.cantidad})" title="Quitar una unidad">−</button>
     </div>`;
+}
+
+async function quitarUnidadStock(id, cantidadActual) {
+    const fila = document.getElementById('stock-fila-' + id);
+    const nueva = Math.round((cantidadActual - 1) * 1000) / 1000;
+    try {
+        if (nueva <= 0) {
+            await del('/stock/' + id);
+        } else {
+            await patch('/stock/' + id, { cantidad: nueva });
+        }
+        await cargarStock();
+    } catch (e) {
+        if (fila) fila.style.opacity = '1';
+    }
 }
 
 /* ══════════════════════════════════════════
