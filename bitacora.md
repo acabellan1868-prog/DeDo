@@ -1,5 +1,105 @@
 # Bitácora — DeDo
 
+## 2026-08-04 — Modal de edición de catálogo, y Despensa agrupada por zona
+
+### Contexto
+Continuación del rediseño del portal. Dos piezas: convertir el formulario
+de catálogo en ventana modal (con el campo EAN, que no se podía editar
+desde la interfaz), y aplicar el mismo criterio de lista agrupada a la
+pestaña Despensa.
+
+### Formulario de catálogo → modal
+El formulario de alta/edición vivía como bloque inline al principio de la
+pestaña Catálogo: al pulsar "Editar" en un producto de más abajo, el
+formulario aparecía arriba del todo y había que hacer scroll. Sustituido
+por una ventana emergente centrada, mismo estilo Cockpit minimalista que
+los modales ya existentes en `admin-lanzador.html` (hogarOS): título con
+marcador ◆, campos con etiqueta, fondo oscuro semitransparente. Se cierra
+con "Cancelar", `Escape` o clic fuera del cuadro.
+
+Aprovechado para añadir el campo **EAN** al formulario (existía en la API
+desde el día anterior pero no se podía ver ni editar desde la interfaz).
+
+Commit `3d65406`.
+
+### Discusión: ¿"zona" está mal ubicada en catalogo?
+El usuario notó que `zona` vive en `catalogo` y preguntó si no debería
+estar en `stock`/despensa, ya que "catálogo es solo el catálogo de
+productos". Se mantiene la decisión original de `DeDo - analisis.md`
+(sección 5.2): `zona` es la zona **habitual** de un tipo de producto
+(mismo patrón que `supermercado_habitual`), no la ubicación de un lote
+concreto — y la necesita la futura Fase 5b (reconocimiento visual por
+zona), que compara una foto contra el catálogo de productos esperados en
+esa zona *antes* de que exista ningún stock.
+
+Confirmado explícitamente con el usuario cómo funciona en la práctica:
+`stock` no tiene columna `zona` — la "hereda" de `catalogo` a través del
+`JOIN` por `producto_id`. Consecuencia asumida a propósito: **todo el
+stock de un mismo producto comparte una única zona**, la del catálogo: no
+se puede tener parte de un producto en la nevera y parte en la alacena
+simultáneamente. Si algún día hace falta ese matiz, requeriría añadir una
+`zona` propia (opcional, de override) en `stock` — no implementado, no
+hace falta mientras no se dé el caso real.
+
+### Bug real encontrado durante la discusión: el JOIN de stock nunca traía zona
+Revisando el porqué de que Despensa mostrara siempre "Sin ubicación", se
+confirmó que `rutas/stock.py` solo unía `c.nombre` desde `catalogo` — ni
+`zona`, ni `stock_minimo`, ni `unidad`. Esto significaba que el filtro
+"Stock bajo/OK" llevaba **roto en silencio desde su creación** (comparaba
+`cantidad` contra `stock_minimo == undefined`, así que no filtraba nada
+en ninguno de los dos casos).
+
+- `rutas/stock.py`: el `JOIN` ahora trae también `categoria`, `zona`,
+  `stock_minimo` y `unidad`.
+- `modelos.py`: `StockRespuesta` ampliado con esos campos (si no,
+  `response_model` los descarta aunque el SQL los traiga — mismo tipo de
+  bug que ya pasó una vez con `zona` en catálogo, sesión 07-25/28).
+
+### Despensa rediseñada: lista agrupada por zona
+Mismo patrón visual que Catálogo (grupos plegables, contador, filtros con
+conteo), pero agrupado por `zona` en vez de por `marca` — es el criterio
+que de verdad organiza una despensa física. Cada fila conserva el
+indicador de color de nivel de stock (antes en la esquina de la tarjeta,
+ahora a la izquierda de la fila):
+
+| Color | Condición | Significado |
+|---|---|---|
+| Verde | `cantidad > stock_minimo` | Stock suficiente |
+| Naranja | `cantidad ≤ stock_minimo` (y > 0) | Stock bajo |
+| Rojo | `cantidad ≤ 0` | Agotado |
+
+Commit `5bd2ef0`.
+
+### Verificación
+Sin backend real desplegado con el fix del `JOIN` todavía, se probó en
+local con una variante del proxy de pruebas que simula el `JOIN` nuevo
+cruzando `/api/stock` y `/api/catalogo` reales en el momento de servir la
+petición. Verificado sobre los 25 productos reales:
+- Agrupación correcta: alacena 6, frigorífico 1, sin zona 18.
+- Filtro "Stock bajo" pasó de no filtrar nada a mostrar 22/25 correctos;
+  "Stock OK" mostró los 3 restantes (antes de este fix ambos filtros
+  estaban silenciosamente rotos).
+- Colores del indicador verificados contra los datos reales fila a fila.
+
+### Estado final de la sesión
+- Catálogo: formulario en modal, con EAN editable.
+- Despensa: agrupada por zona, con niveles de stock visibles y el filtro
+  Stock bajo/OK funcionando por primera vez.
+- Ambos rediseños pendientes de `actualizar.sh` en la VM.
+
+### Próximo paso concreto
+1. 👤 Ejecutar `actualizar.sh` en la VM para desplegar el modal de
+   catálogo (commit `3d65406`) y Despensa agrupada por zona (commit
+   `5bd2ef0`), además de lo pendiente de la sesión anterior (`148a0ba`,
+   `00426fb`)
+2. 👤 Verificar visualmente en producción: modal de catálogo (incluido el
+   campo EAN) y Despensa agrupada por zona con el filtro Stock bajo/OK
+   funcionando de verdad
+3. 🤖/👤 Seguir con el rediseño de Lista/Caducidades/Tickets si se quiere
+   aplicar el mismo criterio al resto de pestañas
+
+---
+
 ## 2026-08-03 (continuación) — Campo EAN y rediseño del catálogo en lista
 
 ### Contexto
