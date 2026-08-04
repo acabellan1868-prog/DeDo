@@ -7,7 +7,8 @@ from app.modelos import StockRespuesta, StockCrear, StockActualizar
 ruta = APIRouter()
 
 _SQL_STOCK_CON_NOMBRE = """
-    SELECT s.*, c.nombre as nombre_producto
+    SELECT s.*, c.nombre as nombre_producto, c.categoria, c.zona,
+           c.stock_minimo, c.unidad
     FROM stock s
     LEFT JOIN catalogo c ON c.id = s.producto_id
 """

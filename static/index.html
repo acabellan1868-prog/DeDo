@@ -49,7 +49,10 @@
         <!-- ── PESTAÑA: DESPENSA ── -->
         <section id="sec-despensa" class="dedo-seccion">
             <div class="dedo-toolbar">
-                <h2 class="dedo-titulo">Inventario actual</h2>
+                <div>
+                    <h2 class="dedo-titulo">Inventario actual</h2>
+                    <p class="dedo-catalogo-nota" id="despensa-nota"></p>
+                </div>
                 <div class="dedo-toolbar-acciones">
                     <select id="filtro-stock" onchange="cargarStock()" class="dedo-select">
                         <option value="todos">Todos</option>
@@ -58,7 +61,7 @@
                     </select>
                 </div>
             </div>
-            <div id="stock-lista" class="dedo-grid-stock">
+            <div id="stock-lista" class="dedo-despensa-lista">
                 <div class="dedo-cargando">Cargando inventario…</div>
             </div>
         </section>

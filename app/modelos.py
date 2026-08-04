@@ -60,6 +60,10 @@ class StockRespuesta(BaseModel):
     id: int
     producto_id: int
     nombre_producto: Optional[str] = None
+    categoria: Optional[str] = None
+    zona: Optional[str] = None
+    stock_minimo: Optional[float] = None
+    unidad: Optional[str] = None
     cantidad: float = 0
     fecha_caducidad: Optional[str] = None
     lote: Optional[str] = None

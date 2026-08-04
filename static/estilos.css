@@ -203,48 +203,101 @@ body {
     border-top: 1px solid var(--ck-line);
 }
 
-/* ── Grid stock ── */
-.dedo-grid-stock {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-    gap: 0.75rem;
-}
-
-.dedo-card-stock {
-    background: var(--ck-bg2);
-    border: 1px solid var(--ck-line);
-    border-radius: 5px;
-    padding: 0.75rem;
+/* ── Despensa: lista agrupada por zona ── */
+.dedo-despensa-lista {
     display: flex;
     flex-direction: column;
-    gap: 0.4rem;
-    position: relative;
+    gap: 0.6rem;
 }
-.dedo-card-stock__nombre {
-    font-size: 0.65rem;
-    font-weight: 700;
-    color: var(--ck-on-surface);
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
+.dedo-despensa-grupo {
+    background: var(--ck-bg2);
+    border: 1px solid var(--ck-line);
+    border-radius: 4px;
+    overflow: hidden;
 }
-.dedo-card-stock__meta {
-    font-size: 0.58rem;
+.dedo-despensa-grupo__cab {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.55rem 0.75rem;
+    cursor: pointer;
+    user-select: none;
+}
+.dedo-despensa-grupo__cab:hover { background: rgba(128,128,128,0.15); }
+.dedo-despensa-grupo__chevron {
     color: var(--ck-on-variant);
+    font-size: 0.6rem;
+    transition: transform 0.15s ease;
+    flex-shrink: 0;
+    width: 0.8rem;
 }
-.dedo-card-stock__cantidad {
-    font-size: 0.85rem;
-    font-weight: 700;
+.dedo-despensa-grupo.abierto .dedo-despensa-grupo__chevron {
+    transform: rotate(90deg);
     color: var(--ck-accent);
 }
-.dedo-card-stock__indicador {
-    position: absolute;
-    top: 0.5rem; right: 0.5rem;
+.dedo-despensa-grupo__zona {
+    font-size: 0.63rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ck-on-surface);
+    flex: 1;
+}
+.dedo-despensa-grupo__zona--sinzona { color: var(--ck-on-variant); }
+.dedo-despensa-grupo__count {
+    font-size: 0.53rem;
+    color: var(--ck-on-variant);
+    font-variant-numeric: tabular-nums;
+    background: var(--ck-bg3);
+    padding: 0.1rem 0.4rem;
+    border-radius: 8px;
+}
+.dedo-despensa-grupo__filas {
+    border-top: 1px solid var(--ck-line);
+    display: flex;
+    flex-direction: column;
+}
+.dedo-despensa-grupo:not(.abierto) .dedo-despensa-grupo__filas { display: none; }
+
+.dedo-despensa-fila {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.5rem 0.75rem;
+    border-bottom: 1px solid var(--ck-line);
+}
+.dedo-despensa-fila:last-child { border-bottom: none; }
+.dedo-despensa-fila:hover { background: rgba(128,128,128,0.08); }
+.dedo-despensa-fila__indicador {
     width: 8px; height: 8px;
     border-radius: 50%;
+    flex-shrink: 0;
 }
-.dedo-card-stock__indicador--ok    { background: #22c55e; }
-.dedo-card-stock__indicador--bajo  { background: #f59e0b; }
-.dedo-card-stock__indicador--vacio { background: #ef4444; }
+.dedo-despensa-fila__indicador--ok    { background: #22c55e; }
+.dedo-despensa-fila__indicador--bajo  { background: #f59e0b; }
+.dedo-despensa-fila__indicador--vacio { background: #ef4444; }
+.dedo-despensa-fila__info { flex: 1; min-width: 0; }
+.dedo-despensa-fila__nombre {
+    font-size: 0.63rem;
+    font-weight: 700;
+    color: var(--ck-on-surface);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.dedo-despensa-fila__meta {
+    font-size: 0.55rem;
+    color: var(--ck-on-variant);
+    margin-top: 0.1rem;
+}
+.dedo-despensa-fila__cantidad {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--ck-accent);
+    font-variant-numeric: tabular-nums;
+    flex-shrink: 0;
+    white-space: nowrap;
+}
 
 /* ── Lista de la compra ── */
 .dedo-lista-compra {

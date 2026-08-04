@@ -83,36 +83,87 @@ async function patch(ruta, body) {
 /* ══════════════════════════════════════════
    PESTAÑA: DESPENSA (stock)
 ══════════════════════════════════════════ */
+let _stockItems = [];
+let _stockGruposAbiertos = {};
+
 async function cargarStock() {
     const contenedor = document.getElementById('stock-lista');
     contenedor.innerHTML = '<div class="dedo-cargando">Cargando inventario…</div>';
     try {
-        const items = await get('/stock');
-        const filtro = document.getElementById('filtro-stock').value;
-        const filtrado = filtro === 'todos' ? items
-            : filtro === 'bajo' ? items.filter(i => i.cantidad <= i.stock_minimo)
-            : items.filter(i => i.cantidad > i.stock_minimo);
-
-        if (!filtrado.length) {
-            contenedor.innerHTML = '<div class="dedo-cargando">Sin resultados.</div>';
-            return;
-        }
-        contenedor.innerHTML = filtrado.map(renderCardStock).join('');
+        _stockItems = await get('/stock');
+        renderStock();
     } catch (e) {
         contenedor.innerHTML = '<div class="dedo-cargando">Error al cargar.</div>';
     }
 }
 
-function renderCardStock(item) {
+function renderStock() {
+    const contenedor = document.getElementById('stock-lista');
+    const nota = document.getElementById('despensa-nota');
+    const filtro = document.getElementById('filtro-stock').value;
+
+    const filtrado = filtro === 'todos' ? _stockItems
+        : filtro === 'bajo' ? _stockItems.filter(i => i.cantidad <= i.stock_minimo)
+        : _stockItems.filter(i => i.cantidad > i.stock_minimo);
+
+    if (!filtrado.length) {
+        nota.textContent = '';
+        contenedor.innerHTML = '<div class="dedo-cargando">Sin resultados.</div>';
+        return;
+    }
+
+    // Agrupar por zona — "Sin zona" siempre al final.
+    const grupos = {};
+    const orden = [];
+    filtrado.forEach(item => {
+        const zona = item.zona || 'Sin zona';
+        if (!grupos[zona]) { grupos[zona] = []; orden.push(zona); }
+        grupos[zona].push(item);
+    });
+    orden.sort((a, b) => {
+        if (a === 'Sin zona') return 1;
+        if (b === 'Sin zona') return -1;
+        return a.localeCompare(b, 'es');
+    });
+
+    nota.textContent = `Agrupado por zona · ${filtrado.length} producto${filtrado.length === 1 ? '' : 's'} en ${orden.length} zona${orden.length === 1 ? '' : 's'}`;
+    contenedor.innerHTML = orden.map(zona => renderGrupoStock(zona, grupos[zona])).join('');
+}
+
+function renderGrupoStock(zona, items) {
+    if (!(zona in _stockGruposAbiertos)) {
+        _stockGruposAbiertos[zona] = zona !== 'Sin zona';
+    }
+    const abierto = _stockGruposAbiertos[zona];
+    const claseZona = zona === 'Sin zona' ? 'dedo-despensa-grupo__zona--sinzona' : '';
+    return `
+    <div class="dedo-despensa-grupo${abierto ? ' abierto' : ''}" data-zona="${esc(zona)}">
+        <div class="dedo-despensa-grupo__cab" onclick="toggleGrupoStock('${esc(zona).replace(/'/g, "\\'")}')">
+            <span class="dedo-despensa-grupo__chevron">▶</span>
+            <span class="dedo-despensa-grupo__zona ${claseZona}">${esc(zona)}</span>
+            <span class="dedo-despensa-grupo__count">${items.length}</span>
+        </div>
+        <div class="dedo-despensa-grupo__filas">${items.map(renderFilaStock).join('')}</div>
+    </div>`;
+}
+
+function toggleGrupoStock(zona) {
+    _stockGruposAbiertos[zona] = !_stockGruposAbiertos[zona];
+    renderStock();
+}
+
+function renderFilaStock(item) {
     const bajo  = item.cantidad <= item.stock_minimo;
     const vacio = item.cantidad <= 0;
     const cls   = vacio ? 'vacio' : bajo ? 'bajo' : 'ok';
     return `
-    <div class="dedo-card-stock">
-        <div class="dedo-card-stock__indicador dedo-card-stock__indicador--${cls}"></div>
-        <div class="dedo-card-stock__nombre">${esc(item.nombre_producto)}</div>
-        <div class="dedo-card-stock__cantidad">${item.cantidad} ${esc(item.unidad || '')}</div>
-        <div class="dedo-card-stock__meta">Mín: ${item.stock_minimo} · ${item.ubicacion ? esc(item.ubicacion) : 'Sin ubicación'}</div>
+    <div class="dedo-despensa-fila">
+        <div class="dedo-despensa-fila__indicador dedo-despensa-fila__indicador--${cls}"></div>
+        <div class="dedo-despensa-fila__info">
+            <div class="dedo-despensa-fila__nombre">${esc(item.nombre_producto)}</div>
+            ${item.categoria ? `<div class="dedo-despensa-fila__meta">${esc(item.categoria)}</div>` : ''}
+        </div>
+        <div class="dedo-despensa-fila__cantidad">${item.cantidad} ${esc(item.unidad || '')}</div>
     </div>`;
 }
 
