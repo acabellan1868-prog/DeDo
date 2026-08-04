@@ -311,9 +311,11 @@ async function marcarParaCaptura(id) {
 }
 
 function mostrarFormCatalogo(item) {
+    document.getElementById('cat-modal-titulo').textContent = item ? 'Editar producto' : 'Nuevo producto';
     document.getElementById('cat-editando-id').value      = item ? item.id : '';
     document.getElementById('cat-input-nombre').value      = item ? (item.nombre || '') : '';
     document.getElementById('cat-input-marca').value       = item ? (item.marca || '') : '';
+    document.getElementById('cat-input-ean').value          = item ? (item.ean || '') : '';
     document.getElementById('cat-input-categoria').value   = item ? (item.categoria || '') : '';
     document.getElementById('cat-input-zona').value        = item ? (item.zona || '') : '';
     document.getElementById('cat-input-unidad').value      = item ? (item.unidad || '') : '';
@@ -322,11 +324,11 @@ function mostrarFormCatalogo(item) {
     document.getElementById('cat-input-super').value       = item ? (item.supermercado_habitual || '') : '';
     document.getElementById('cat-input-estado').value      = item ? (item.estado || 'activo') : 'activo';
     document.getElementById('cat-input-descripcion').value = item ? (item.descripcion_visual || '') : '';
-    document.getElementById('form-catalogo').classList.remove('dedo-form--oculto');
+    document.getElementById('modal-catalogo').classList.add('visible');
 }
 
 function ocultarFormCatalogo() {
-    document.getElementById('form-catalogo').classList.add('dedo-form--oculto');
+    document.getElementById('modal-catalogo').classList.remove('visible');
 }
 
 function editarProducto(id) {
@@ -343,6 +345,7 @@ async function guardarProducto() {
     const payload = {
         nombre,
         marca: document.getElementById('cat-input-marca').value.trim() || null,
+        ean: document.getElementById('cat-input-ean').value.trim() || null,
         categoria: document.getElementById('cat-input-categoria').value.trim() || null,
         zona: document.getElementById('cat-input-zona').value.trim() || null,
         unidad: document.getElementById('cat-input-unidad').value.trim() || 'unidad',
@@ -470,6 +473,13 @@ async function borrarTicket(id) {
         cargarTickets();
     } catch (e) { alert(e.message || 'Error al borrar.'); }
 }
+
+/* ── Modal catálogo: cerrar con Escape ── */
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && document.getElementById('modal-catalogo').classList.contains('visible')) {
+        ocultarFormCatalogo();
+    }
+});
 
 /* ── Utilidad escape HTML ── */
 function esc(str) {

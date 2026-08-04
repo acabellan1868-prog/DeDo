@@ -103,31 +103,80 @@
                 </div>
             </div>
 
-            <!-- Formulario alta/edición (oculto por defecto) -->
-            <div id="form-catalogo" class="dedo-form dedo-form--oculto">
-                <input type="hidden" id="cat-editando-id">
-                <input type="text" id="cat-input-nombre" placeholder="Nombre*" class="dedo-input">
-                <input type="text" id="cat-input-marca" placeholder="Marca" class="dedo-input">
-                <input type="text" id="cat-input-categoria" placeholder="Categoría" class="dedo-input">
-                <input type="text" id="cat-input-zona" placeholder="Zona (alacena, frigorifico…)" class="dedo-input">
-                <input type="text" id="cat-input-unidad" placeholder="Unidad" class="dedo-input dedo-input--corto">
-                <input type="number" id="cat-input-stockmin" placeholder="Stock mín." step="0.1" class="dedo-input dedo-input--corto">
-                <input type="number" id="cat-input-caducidad" placeholder="Caducidad (días)" class="dedo-input dedo-input--corto">
-                <input type="text" id="cat-input-super" placeholder="Supermercado habitual" class="dedo-input">
-                <select id="cat-input-estado" class="dedo-select">
-                    <option value="activo">Activo</option>
-                    <option value="por_definir">Por definir</option>
-                    <option value="por_capturar">Por capturar</option>
-                </select>
-                <textarea id="cat-input-descripcion" placeholder="Descripción visual" class="dedo-input" style="flex-basis:100%; min-height:2.5rem; resize:vertical;"></textarea>
-                <button class="dedo-btn dedo-btn--primario" onclick="guardarProducto()">Guardar</button>
-                <button class="dedo-btn" onclick="ocultarFormCatalogo()">Cancelar</button>
-            </div>
-
             <div id="catalogo-lista" class="dedo-catalogo-lista">
                 <div class="dedo-cargando">Cargando catálogo…</div>
             </div>
         </section>
+
+        <!-- ── MODAL: alta/edición de producto de catálogo ── -->
+        <div id="modal-catalogo" class="dedo-modal-fondo" onclick="if (event.target === this) ocultarFormCatalogo();">
+            <div class="dedo-modal">
+                <div class="dedo-modal__titulo" id="cat-modal-titulo">Nuevo producto</div>
+                <input type="hidden" id="cat-editando-id">
+
+                <div class="dedo-campo">
+                    <label for="cat-input-nombre">Nombre *</label>
+                    <input type="text" id="cat-input-nombre" placeholder="Gazpacho fresco" class="dedo-input">
+                </div>
+                <div class="dedo-campo-fila">
+                    <div class="dedo-campo">
+                        <label for="cat-input-marca">Marca</label>
+                        <input type="text" id="cat-input-marca" placeholder="García Millán" class="dedo-input">
+                    </div>
+                    <div class="dedo-campo">
+                        <label for="cat-input-ean">EAN</label>
+                        <input type="text" id="cat-input-ean" placeholder="8437004394385" class="dedo-input">
+                    </div>
+                </div>
+                <div class="dedo-campo-fila">
+                    <div class="dedo-campo">
+                        <label for="cat-input-categoria">Categoría</label>
+                        <input type="text" id="cat-input-categoria" placeholder="Conservas, caldos y cremas" class="dedo-input">
+                    </div>
+                    <div class="dedo-campo">
+                        <label for="cat-input-zona">Zona</label>
+                        <input type="text" id="cat-input-zona" placeholder="alacena, frigorifico…" class="dedo-input">
+                    </div>
+                </div>
+                <div class="dedo-campo-fila">
+                    <div class="dedo-campo">
+                        <label for="cat-input-unidad">Unidad</label>
+                        <input type="text" id="cat-input-unidad" placeholder="unidad" class="dedo-input">
+                    </div>
+                    <div class="dedo-campo">
+                        <label for="cat-input-stockmin">Stock mín.</label>
+                        <input type="number" id="cat-input-stockmin" placeholder="1" step="0.1" class="dedo-input">
+                    </div>
+                    <div class="dedo-campo">
+                        <label for="cat-input-caducidad">Caducidad (días)</label>
+                        <input type="number" id="cat-input-caducidad" placeholder="20" class="dedo-input">
+                    </div>
+                </div>
+                <div class="dedo-campo-fila">
+                    <div class="dedo-campo">
+                        <label for="cat-input-super">Supermercado habitual</label>
+                        <input type="text" id="cat-input-super" placeholder="Mercadona" class="dedo-input">
+                    </div>
+                    <div class="dedo-campo">
+                        <label for="cat-input-estado">Estado</label>
+                        <select id="cat-input-estado" class="dedo-select">
+                            <option value="activo">Activo</option>
+                            <option value="por_definir">Por definir</option>
+                            <option value="por_capturar">Por capturar</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="dedo-campo">
+                    <label for="cat-input-descripcion">Descripción visual</label>
+                    <textarea id="cat-input-descripcion" placeholder="Forma, colores, elementos clave del envase…" class="dedo-input" style="min-height:3.5rem; resize:vertical;"></textarea>
+                </div>
+
+                <div class="dedo-modal__acciones">
+                    <button class="dedo-btn" onclick="ocultarFormCatalogo()">Cancelar</button>
+                    <button class="dedo-btn dedo-btn--primario" onclick="guardarProducto()">Guardar</button>
+                </div>
+            </div>
+        </div>
 
         <!-- ── PESTAÑA: CADUCIDADES ── -->
         <section id="sec-caducidades" class="dedo-seccion dedo-seccion--oculta">
